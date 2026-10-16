@@ -37,7 +37,7 @@ describe('GASS REST API Endpoints', () => {
       expect(res.status).to.equal(200);
       expect(res.body.success).to.be.true;
       const codes = res.body.data.map(c => c.code);
-      expect(codes).to.include('MATH 151');
+      expect(codes).to.include('MATH 171');
     });
   });
 

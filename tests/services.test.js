@@ -65,29 +65,29 @@ describe('GASS Services (Shared Business Logic)', () => {
       expect(courses).to.be.an('array');
       expect(courses.length).to.be.at.least(1);
 
-      const math151 = courses.find(c => c.code === 'MATH 151');
-      expect(math151).to.exist;
-      expect(math151.title).to.equal('Calculus I');
+      const math171 = courses.find(c => c.code === 'MATH 171');
+      expect(math171).to.exist;
+      expect(math171.title).to.equal('Calculus I');
     });
 
     it('should get course by code case-insensitively', async () => {
-      const course = await courseService.getCourseByCode('stat 151');
+      const course = await courseService.getCourseByCode('math 171');
       expect(course).to.exist;
-      expect(course.title).to.equal('Introduction to Statistics I');
+      expect(course.title).to.equal('Calculus I');
     });
 
     it('should retrieve topics belonging to a course', async () => {
-      const course = await courseService.getCourseByCode('STAT 151');
+      const course = await courseService.getCourseByCode('MATH 171');
       const topics = await courseService.getTopicsByCourseId(course.id);
       expect(topics).to.be.an('array');
       expect(topics.length).to.be.at.least(2);
-      expect(topics[0].title).to.include('Frequency Distributions');
+      expect(topics[0].title).to.include('Limits');
     });
   });
 
   describe('Resource Service', () => {
     it('should fetch curriculum resources for a course', async () => {
-      const course = await courseService.getCourseByCode('STAT 151');
+      const course = await courseService.getCourseByCode('MATH 171');
       const resources = await resourceService.getResourcesByCourse(course.id);
       expect(resources).to.be.an('array');
       expect(resources.length).to.be.at.least(1);
@@ -101,7 +101,7 @@ describe('GASS Services (Shared Business Logic)', () => {
     });
 
     it('should search resources by keyword across titles and courses', async () => {
-      const results = await resourceService.searchResources('STAT 151');
+      const results = await resourceService.searchResources('MATH 171');
       expect(results).to.be.an('array');
       expect(results.length).to.be.at.least(1);
     });

@@ -2,6 +2,8 @@ const { InlineKeyboard } = require('grammy');
 
 function getAdminPanelKeyboard() {
   return new InlineKeyboard()
+    .text('➕ Upload Resource (Telegram File/Link)', 'admin_add_resource')
+    .row()
     .text('📥 Review Pending Requests', 'admin_requests')
     .row()
     .text('📢 Broadcast Announcement', 'admin_broadcast')

@@ -127,9 +127,12 @@ No ${resourceType ? resourceType.replace('_', ' ') : 'course'} resources are cur
     text += `\n*${idx + 1}. ${r.title}*\n`;
     text += `   🏷️ _Type:_ ${typeLabel} | 💾 _Format:_ ${r.file_format.toUpperCase()}\n`;
     text += `   📥 _Downloads:_ ${r.download_count}\n`;
-    if (r.file_url) {
-      text += `   🔗 [Direct Download Link](${r.file_url})\n`;
-      keyboard.url(`📥 Download #${idx + 1}`, r.file_url);
+    if (r.telegram_file_id) {
+      keyboard.text(`📥 Send File #${idx + 1}`, `res_send_${r.id}`);
+      if ((idx + 1) % 2 === 0) keyboard.row();
+    } else if (r.file_url && r.file_url.startsWith('http')) {
+      text += `   🔗 [Link](${r.file_url})\n`;
+      keyboard.url(`📥 Open #${idx + 1}`, r.file_url);
       if ((idx + 1) % 2 === 0) keyboard.row();
     }
   });
@@ -146,10 +149,45 @@ No ${resourceType ? resourceType.replace('_', ' ') : 'course'} resources are cur
   });
 }
 
+async function handleSendResourceFile(ctx, resourceId) {
+  const { getResourceById, incrementDownloadCount } = require('../../services/resourceService');
+  const resource = await getResourceById(resourceId);
+  if (!resource) {
+    await ctx.answerCallbackQuery({ text: 'Resource not found.' });
+    return;
+  }
+  await ctx.answerCallbackQuery({ text: 'Sending document...' });
+  await incrementDownloadCount(resourceId);
+
+  const caption = `📄 *${resource.title}*\n${resource.course_code ? `Course: ${resource.course_code}\n` : ''}Slogan: _"Statistics for Development"_`;
+
+  if (resource.telegram_file_id) {
+    try {
+      if (resource.file_format === 'jpg' || resource.file_format === 'png') {
+        await ctx.replyWithPhoto(resource.telegram_file_id, { caption, parse_mode: 'Markdown' });
+      } else if (resource.file_format === 'mp4') {
+        await ctx.replyWithVideo(resource.telegram_file_id, { caption, parse_mode: 'Markdown' });
+      } else {
+        await ctx.replyWithDocument(resource.telegram_file_id, { caption, parse_mode: 'Markdown' });
+      }
+    } catch (err) {
+      console.error('Error sending Telegram file:', err);
+      if (resource.file_url && resource.file_url.startsWith('http')) {
+        await ctx.reply(`🔗 *${resource.title}*\nDownload link: ${resource.file_url}`, { parse_mode: 'Markdown' });
+      } else {
+        await ctx.reply('⚠️ Could not deliver this file directly. Please check back shortly.');
+      }
+    }
+  } else if (resource.file_url) {
+    await ctx.reply(`🔗 *${resource.title}*\nDownload link: ${resource.file_url}`, { parse_mode: 'Markdown' });
+  }
+}
+
 module.exports = {
   handleAcademicMenu,
   handleLevelSelect,
   handleSemesterSelect,
   handleCourseSelect,
-  handleResourceList
+  handleResourceList,
+  handleSendResourceFile
 };

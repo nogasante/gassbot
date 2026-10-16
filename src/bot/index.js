@@ -25,6 +25,8 @@ const {
 
 const { requestResourceConversation } = require('./conversations/requestConversation');
 const { broadcastConversation } = require('./conversations/broadcastConversation');
+const { addResourceConversation } = require('./conversations/addResourceConversation');
+const { handleSendResourceFile } = require('./handlers/academic');
 const { getMainMenuKeyboard } = require('./keyboards/mainMenu');
 const { isUserAdmin } = require('./handlers/admin');
 const { getUserByTelegramId } = require('../services/userService');
@@ -37,6 +39,7 @@ function createBot(token = config.botToken) {
   bot.use(conversations());
   bot.use(createConversation(requestResourceConversation));
   bot.use(createConversation(broadcastConversation));
+  bot.use(createConversation(addResourceConversation));
 
   // Global Error Handler
   bot.catch((err) => {
@@ -200,6 +203,20 @@ function createBot(token = config.botToken) {
   bot.callbackQuery('admin_broadcast', async (ctx) => {
     await ctx.answerCallbackQuery();
     await ctx.conversation.enter('broadcastConversation');
+  });
+
+  bot.command('addresource', async (ctx) => {
+    await ctx.conversation.enter('addResourceConversation');
+  });
+
+  bot.callbackQuery('admin_add_resource', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await ctx.conversation.enter('addResourceConversation');
+  });
+
+  bot.callbackQuery(/^res_send_(\d+)$/, async (ctx) => {
+    const resourceId = parseInt(ctx.match[1], 10);
+    await handleSendResourceFile(ctx, resourceId);
   });
 
   bot.callbackQuery('admin_stats', async (ctx) => {

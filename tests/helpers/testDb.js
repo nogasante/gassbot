@@ -2,12 +2,34 @@ const { newDb } = require('pg-mem');
 const fs = require('fs');
 const path = require('path');
 const { setPool } = require('../../src/config/database');
-const { coursesData, beyondCurriculumData } = require('../../src/database/seed');
+const { coursesData } = require('../../src/database/seed');
+
+const testBeyondResources = [
+  {
+    title: 'R for Data Science Guide',
+    description: 'Tidyverse and R statistical workflow',
+    resource_type: 'guide',
+    category: 'beyond_curriculum',
+    beyond_category: 'r',
+    file_url: 'https://r4ds.hadley.nz/',
+    file_format: 'link',
+    tags: ['r', 'statistics']
+  },
+  {
+    title: 'Python for Statistics',
+    description: 'Pandas and scipy for data analysis',
+    resource_type: 'tutorial',
+    category: 'beyond_curriculum',
+    beyond_category: 'python',
+    file_url: 'https://example.com/python-stats',
+    file_format: 'link',
+    tags: ['python', 'statistics']
+  }
+];
 
 async function setupTestDb() {
   const db = newDb();
 
-  // Register common functions or types needed by postgres in pg-mem
   db.public.registerFunction({
     name: 'now',
     implementation: () => new Date()
@@ -17,13 +39,10 @@ async function setupTestDb() {
   const pool = new adapter.Pool();
   setPool(pool);
 
-  // Read schema
   const schemaPath = path.join(__dirname, '../../src/database/schema.sql');
   const schemaSql = fs.readFileSync(schemaPath, 'utf8');
 
-  // Execute schema
   await pool.query(schemaSql);
-
   return pool;
 }
 
@@ -33,32 +52,31 @@ async function seedTestDb(pool) {
       `INSERT INTO courses (code, title, level, semester, description)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, code;`,
-      [c.code, c.title, c.level, c.semester, c.description]
+      [c.code, c.title, c.level, c.semester, `${c.code} - ${c.title}`]
     );
 
     const courseId = res.rows[0].id;
 
-    if (c.code === 'STAT 151') {
+    if (c.code === 'MATH 171') {
       await pool.query(
         `INSERT INTO topics (course_id, title, description, order_index)
          VALUES 
-           ($1, 'Frequency Distributions & Grouped Data', 'Histograms and polygons', 1),
-           ($1, 'Measures of Central Tendency', 'Mean, median, mode', 2),
-           ($1, 'Measures of Dispersion', 'Range, variance, standard deviation', 3);`,
+           ($1, 'Limits & Continuity', 'Introduction to limits', 1),
+           ($1, 'Differentiation', 'Rules and applications', 2);`,
         [courseId]
       );
 
       await pool.query(
         `INSERT INTO resources (title, description, resource_type, category, course_id, file_url, file_format, tags)
          VALUES 
-           ('STAT 151 Course Syllabus', 'Official syllabus', 'syllabus', 'curriculum', $1, 'https://example.com/stat151.pdf', 'pdf', ARRAY['stat151']),
-           ('STAT 151 Past Questions 2024', 'Exams with guide', 'past_question', 'curriculum', $1, 'https://example.com/stat151-pq.pdf', 'pdf', ARRAY['stat151', 'pq']);`,
+           ('MATH 171 Course Outline', 'Official course syllabus', 'syllabus', 'curriculum', $1, 'https://example.com/math171.pdf', 'pdf', ARRAY['math171']),
+           ('MATH 171 Past Questions', 'Past exam questions', 'past_question', 'curriculum', $1, 'https://example.com/math171-pq.pdf', 'pdf', ARRAY['math171', 'pq']);`,
         [courseId]
       );
     }
   }
 
-  for (const r of beyondCurriculumData) {
+  for (const r of testBeyondResources) {
     await pool.query(
       `INSERT INTO resources (title, description, resource_type, category, beyond_category, file_url, file_format, tags)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
@@ -68,7 +86,7 @@ async function seedTestDb(pool) {
 
   await pool.query(
     `INSERT INTO announcements (title, content, priority, target_level, broadcasted_at)
-     VALUES ('Welcome to GASS', 'Official academic platform launch', 'academic', NULL, NOW());`
+     VALUES ('Welcome to GASS', 'Official academic platform launch', 'normal', NULL, NOW());`
   );
 }
 
