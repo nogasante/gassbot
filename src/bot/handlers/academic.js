@@ -104,7 +104,7 @@ No ${resourceType ? resourceType.replace('_', ' ') : 'course'} resources are cur
 💡 _Need this material? Use the "Request Resource" button to notify the Academic Committee!_`;
 
     const keyboard = new InlineKeyboard()
-      .text('📝 Request this Resource', 'menu_request')
+      .text(`📝 Request ${course.code} Materials`, `req_course_${courseId}`)
       .row()
       .text('🔙 Back to Course', `acad_crs_${courseId}`)
       .text('🏠 Main Menu', 'menu_main');
@@ -183,11 +183,58 @@ async function handleSendResourceFile(ctx, resourceId) {
   }
 }
 
+async function handleQuickCourseRequest(ctx, courseId) {
+  const course = await getCourseById(courseId);
+  if (!course) {
+    await ctx.answerCallbackQuery({ text: 'Course not found.' });
+    return;
+  }
+
+  const { findOrCreateUser } = require('../../services/userService');
+  const { createRequest } = require('../../services/requestService');
+
+  const dbUser = await findOrCreateUser({
+    telegramId: ctx.from.id,
+    username: ctx.from.username || null,
+    firstName: ctx.from.first_name || '',
+    lastName: ctx.from.last_name || ''
+  });
+
+  const created = await createRequest({
+    userId: dbUser.id,
+    courseCode: course.code,
+    topicTitle: course.title,
+    details: `1-click request for ${course.code} (${course.title})`
+  });
+
+  await ctx.answerCallbackQuery({ text: `Request logged for ${course.code}!` });
+
+  const text = 
+`✅ *Request Submitted for ${course.code}!*
+━━━━━━━━━━━━━━━━━━
+📌 *Course:* ${course.code} — ${course.title}
+📋 *Request ID:* #${created.id}
+
+We have recorded your request and alerted the GASS Academic Committee. As soon as materials for *${course.code}* are uploaded, you will receive them right here!
+
+_Statistics for Development_`;
+
+  const keyboard = new InlineKeyboard()
+    .text('🔙 Back to Course', `acad_crs_${courseId}`)
+    .text('🏠 Main Menu', 'menu_main');
+
+  await ctx.editMessageText(text, {
+    parse_mode: 'Markdown',
+    reply_markup: keyboard
+  });
+}
+
 module.exports = {
   handleAcademicMenu,
   handleLevelSelect,
   handleSemesterSelect,
   handleCourseSelect,
   handleResourceList,
-  handleSendResourceFile
+  handleSendResourceFile,
+  handleQuickCourseRequest
 };

@@ -8,7 +8,8 @@ const {
   handleLevelSelect,
   handleSemesterSelect,
   handleCourseSelect,
-  handleResourceList
+  handleResourceList,
+  handleQuickCourseRequest
 } = require('./handlers/academic');
 const { handleBeyondMenu, handleBeyondCategorySelect } = require('./handlers/beyond');
 const { handleSearchCommand, handleSearchMenuPrompt, executeSearch } = require('./handlers/search');
@@ -161,6 +162,11 @@ function createBot(token = config.botToken) {
     const courseId = parseInt(ctx.match[1], 10);
     const resourceType = ctx.match[2];
     await handleResourceList(ctx, courseId, resourceType);
+  });
+
+  bot.callbackQuery(/^req_course_(\d+)$/, async (ctx) => {
+    const courseId = parseInt(ctx.match[1], 10);
+    await handleQuickCourseRequest(ctx, courseId);
   });
 
   // Beyond Curriculum Sub-navigation
