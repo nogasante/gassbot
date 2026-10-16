@@ -1,6 +1,6 @@
 const { config } = require('../../config');
 const { findOrCreateUser } = require('../../services/userService');
-const { getMainMenuKeyboard } = require('../keyboards/mainMenu');
+const { getMainMenuKeyboard, getPersistentMenuKeyboard } = require('../keyboards/mainMenu');
 
 async function handleStart(ctx) {
   const telegramUser = ctx.from;
@@ -21,13 +21,11 @@ async function handleStart(ctx) {
 *Ghana Association of Statistics Students (KNUST)*
 _"${config.brand.slogan}"_
 
-Hello *${user.first_name || 'Scholar'}*, welcome to your official digital academic companion. Access lecture notes, past questions, statistical software guides, departmental announcements, and study tools anytime.
-
-✨ *What would you like to explore today?*`;
+Hello *${user.first_name || 'Scholar'}*! Tap any menu item below or type a course code (like \`MATH 171\` or \`STAT 266\`) to instantly find and get resources.`;
 
   await ctx.reply(welcomeMessage, {
     parse_mode: 'Markdown',
-    reply_markup: getMainMenuKeyboard(user.role === 'admin' || isAdmin)
+    reply_markup: getPersistentMenuKeyboard(user.role === 'admin' || isAdmin)
   });
 }
 

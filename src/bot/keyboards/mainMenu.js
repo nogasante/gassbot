@@ -22,15 +22,24 @@ function getMainMenuKeyboard(isAdmin = false) {
   return keyboard;
 }
 
-function getReplyMenuKeyboard() {
-  return new Keyboard()
-    .text('📚 Academic Resources').text('🚀 Beyond Curriculum').row()
-    .text('🔍 Search').text('📝 Request Resource').row()
-    .text('🔔 Notifications').text('🌐 Web App').text('ℹ️ About')
-    .resized();
+function getPersistentMenuKeyboard(isAdmin = false) {
+  const kb = new Keyboard()
+    .text('📚 Academic').text('🚀 Beyond').text('🔍 Find Resource')
+    .row()
+    .text('📝 Request File').text('🌐 Web App').text('🔔 Alerts')
+    .row();
+
+  if (isAdmin) {
+    kb.text('⚡ Admin Panel').text('➕ Upload File').text('ℹ️ About');
+  } else {
+    kb.text('ℹ️ About GASS').text('📲 Get App').text('💬 Help');
+  }
+
+  return kb.resized().persistent();
 }
 
 module.exports = {
   getMainMenuKeyboard,
-  getReplyMenuKeyboard
+  getReplyMenuKeyboard: getPersistentMenuKeyboard,
+  getPersistentMenuKeyboard
 };

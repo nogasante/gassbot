@@ -61,16 +61,20 @@ function createBot(token = config.botToken) {
   bot.command('about', handleHelp);
   bot.command('admin', handleAdminMenu);
 
-  // Reply Keyboard Text Listeners
-  bot.hears('📚 Academic Resources', handleAcademicMenu);
-  bot.hears('🚀 Beyond Curriculum', handleBeyondMenu);
-  bot.hears('🔍 Search', handleSearchMenuPrompt);
-  bot.hears('📝 Request Resource', async (ctx) => {
+  // Persistent 3-Column Reply Keyboard Listeners
+  bot.hears(['📚 Academic', '📚 Academic Resources'], handleAcademicMenu);
+  bot.hears(['🚀 Beyond', '🚀 Beyond Curriculum'], handleBeyondMenu);
+  bot.hears(['🔍 Find Resource', '🔍 Search'], handleSearchMenuPrompt);
+  bot.hears(['📝 Request File', '📝 Request Resource'], async (ctx) => {
     await ctx.conversation.enter('requestResourceConversation');
   });
-  bot.hears('🔔 Notifications', handleNotificationsMenu);
-  bot.hears('🌐 Web App', handleAppInfo);
-  bot.hears('ℹ️ About', handleHelp);
+  bot.hears(['🔔 Alerts', '🔔 Notifications'], handleNotificationsMenu);
+  bot.hears(['🌐 Web App', '📲 Get App'], handleAppInfo);
+  bot.hears(['⚡ Admin Panel', '⚡ Admin'], handleAdminMenu);
+  bot.hears('➕ Upload File', async (ctx) => {
+    await ctx.conversation.enter('addResourceConversation');
+  });
+  bot.hears(['ℹ️ About GASS', 'ℹ️ About', '💬 Help'], handleHelp);
 
   // Callback Query Handlers
   bot.callbackQuery('menu_main', async (ctx) => {

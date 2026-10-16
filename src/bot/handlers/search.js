@@ -90,7 +90,10 @@ async function executeSearch(ctx, queryTerm) {
     const safeType = escapeMarkdown(r.resource_type.toUpperCase().replace('_', ' '));
     text += `\n*${idx + 1}. ${coursePrefix}${safeTitle}*\n`;
     text += `   🏷️ ${safeType} | 📥 Downloads: ${r.download_count}\n`;
-    if (r.file_url) {
+    if (r.telegram_file_id) {
+      keyboard.text(`📥 Send File #${idx + 1}`, `res_send_${r.id}`);
+      if ((idx + 1) % 2 === 0) keyboard.row();
+    } else if (r.file_url && r.file_url.startsWith('http')) {
       text += `   🔗 [Download Resource](${r.file_url})\n`;
       keyboard.url(`📥 Download #${idx + 1}`, r.file_url);
       if ((idx + 1) % 2 === 0) keyboard.row();
