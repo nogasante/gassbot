@@ -1,0 +1,32 @@
+{
+  "name": "gassbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js",
+    "migrate": "node src/database/migrate.js",
+    "seed": "node src/database/seed.js",
+    "test": "mocha tests/**/*.test.js --timeout 10000 --exit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@grammyjs/conversations": "^2.1.1",
+    "@grammyjs/menu": "^1.5.0",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "grammy": "^1.46.0",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "chai": "^6.3.0",
+    "mocha": "^12.0.3",
+    "pg-mem": "^3.0.14",
+    "supertest": "^7.3.1"
+  }
+}
