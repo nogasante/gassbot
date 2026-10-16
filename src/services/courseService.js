@@ -22,11 +22,17 @@ async function getCourseById(courseId) {
 }
 
 async function getCourseByCode(code) {
+  if (!code) return null;
+  const trimmed = code.trim();
+  const cleanCode = trimmed.replace(/\s+/g, '');
+  const spaced = cleanCode.replace(/^([A-Za-z]+)(\d+)$/, '$1 $2');
+
   const res = await query(
     `SELECT id, code, title, level, semester, description, is_active
      FROM courses
-     WHERE UPPER(code) = UPPER($1);`,
-    [code]
+     WHERE UPPER(code) = UPPER($1) OR UPPER(code) = UPPER($2) OR UPPER(code) = UPPER($3)
+     LIMIT 1;`,
+    [trimmed, cleanCode, spaced]
   );
   return res.rows[0] || null;
 }

@@ -169,6 +169,51 @@ function createBot(token = config.botToken) {
     await handleQuickCourseRequest(ctx, courseId);
   });
 
+  bot.callbackQuery(/^req_raw_(.+)$/, async (ctx) => {
+    const rawEncoded = ctx.match[1];
+    let queryText = 'General Material';
+    try {
+      queryText = Buffer.from(rawEncoded, 'base64url').toString('utf8');
+    } catch (e) {}
+
+    const { findOrCreateUser } = require('../services/userService');
+    const { createRequest } = require('../services/requestService');
+    const { escapeMarkdown } = require('./utils/format');
+
+    const dbUser = await findOrCreateUser({
+      telegramId: ctx.from.id,
+      username: ctx.from.username || null,
+      firstName: ctx.from.first_name || '',
+      lastName: ctx.from.last_name || ''
+    });
+
+    const created = await createRequest({
+      userId: dbUser.id,
+      courseCode: queryText.slice(0, 30).toUpperCase(),
+      topicTitle: queryText,
+      details: `1-click search request for "${queryText}"`
+    });
+
+    await ctx.answerCallbackQuery({ text: 'Request logged!' });
+
+    const text = 
+`✅ *Request Auto-Logged!*
+━━━━━━━━━━━━━━━━━━
+📌 *Requested Material:* ${escapeMarkdown(queryText)}
+📋 *Request ID:* #${created.id}
+
+We have alerted the GASS Academic Committee. As soon as materials for *${escapeMarkdown(queryText)}* are uploaded, you will receive them right here!
+
+_Statistics for Development_`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: new InlineKeyboard()
+        .text('🔍 Search Another Topic', 'menu_search')
+        .text('🏠 Main Menu', 'menu_main')
+    });
+  });
+
   // Beyond Curriculum Sub-navigation
   bot.callbackQuery(/^beyond_cat_(.+)$/, async (ctx) => {
     await ctx.answerCallbackQuery();
