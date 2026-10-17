@@ -32,19 +32,37 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar })
         </InlineButtons.Item>
       </InlineButtons>
 
-      {/* Official Telegram UI Cards for Competency Pillars with In-App 3D Graphics */}
-      <Section header="Featured Specializations" footer="Tap any card to view curated toolkits, software, and guides">
-        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '4px 16px 12px' }}>
-          <Card type="plain" onClick={() => onSelectPillar('ds_ml')} style={{ minWidth: '150px', flexShrink: 0, cursor: 'pointer' }}>
+      {/* Featured Specializations with 3D Graphics (No Scrollbar) */}
+      <Section header="Featured Specializations">
+        <div 
+          className="no-scrollbar" 
+          style={{ 
+            display: 'flex', 
+            gap: '10px', 
+            overflowX: 'auto', 
+            padding: '4px 16px 12px',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+        >
+          <Card 
+            type="plain" 
+            onClick={() => onSelectPillar('ds_ml')} 
+            style={{ width: '135px', minWidth: '135px', flexShrink: 0, cursor: 'pointer' }}
+          >
             <div className="card-graphic-wrapper">
               <img src="/img/track-ds.png" alt="AI & ML" />
             </div>
-            <Card.Cell subhead="MACHINE LEARNING" subtitle="PyTorch, AI, modeling">
+            <Card.Cell subhead="MACHINE LEARNING" subtitle="PyTorch, AI models">
               AI & ML
             </Card.Cell>
           </Card>
 
-          <Card type="plain" onClick={() => onSelectPillar('prog_tools')} style={{ minWidth: '150px', flexShrink: 0, cursor: 'pointer' }}>
+          <Card 
+            type="plain" 
+            onClick={() => onSelectPillar('prog_tools')} 
+            style={{ width: '135px', minWidth: '135px', flexShrink: 0, cursor: 'pointer' }}
+          >
             <div className="card-graphic-wrapper">
               <img src="/img/track-code.png" alt="Software" />
             </div>
@@ -53,20 +71,28 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar })
             </Card.Cell>
           </Card>
 
-          <Card type="plain" onClick={() => onSelectPillar('career_growth')} style={{ minWidth: '150px', flexShrink: 0, cursor: 'pointer' }}>
+          <Card 
+            type="plain" 
+            onClick={() => onSelectPillar('career_growth')} 
+            style={{ width: '135px', minWidth: '135px', flexShrink: 0, cursor: 'pointer' }}
+          >
             <div className="card-graphic-wrapper">
               <img src="/img/track-career.png" alt="Careers" />
             </div>
-            <Card.Cell subhead="INDUSTRY" subtitle="Internships & resumes">
+            <Card.Cell subhead="INDUSTRY" subtitle="Jobs & Internships">
               CAREERS
             </Card.Cell>
           </Card>
 
-          <Card type="plain" onClick={() => onSelectPillar('research_thesis')} style={{ minWidth: '150px', flexShrink: 0, cursor: 'pointer' }}>
+          <Card 
+            type="plain" 
+            onClick={() => onSelectPillar('research_thesis')} 
+            style={{ width: '135px', minWidth: '135px', flexShrink: 0, cursor: 'pointer' }}
+          >
             <div className="card-graphic-wrapper">
               <img src="/img/track-research.png" alt="Research" />
             </div>
-            <Card.Cell subhead="METHODOLOGY" subtitle="Biostats & Actuarial">
+            <Card.Cell subhead="METHODOLOGY" subtitle="Thesis & Biostats">
               RESEARCH
             </Card.Cell>
           </Card>
@@ -85,40 +111,52 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar })
       )}
 
       {/* Academic Curriculum Section */}
-      <Section header="Academic Curriculum" footer="Browse approved semester courses, slides, and past exam questions">
+      <Section header="Academic Curriculum">
         <Cell
-          before={<Avatar size={40} acronym="L1" />}
+          before={<div className="level-badge">L100</div>}
           subhead="YEAR 1"
           subtitle="Calculus, Algebra, Descriptive Statistics, Probability I"
           after={<Icon24ChevronRight />}
-          onClick={() => onSelectLevel(100)}
+          onClick={() => {
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            onSelectLevel(100);
+          }}
         >
           Level 100
         </Cell>
         <Cell
-          before={<Avatar size={40} acronym="L2" />}
+          before={<div className="level-badge">L200</div>}
           subhead="YEAR 2"
           subtitle="Probability Distributions, Statistical Computing, Linear Models"
           after={<Icon24ChevronRight />}
-          onClick={() => onSelectLevel(200)}
+          onClick={() => {
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            onSelectLevel(200);
+          }}
         >
           Level 200
         </Cell>
         <Cell
-          before={<Avatar size={40} acronym="L3" />}
+          before={<div className="level-badge">L300</div>}
           subhead="YEAR 3"
           subtitle="Statistical Inference, Regression Analysis, Stochastic Processes"
           after={<Icon24ChevronRight />}
-          onClick={() => onSelectLevel(300)}
+          onClick={() => {
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            onSelectLevel(300);
+          }}
         >
           Level 300
         </Cell>
         <Cell
-          before={<Avatar size={40} acronym="L4" />}
+          before={<div className="level-badge">L400</div>}
           subhead="YEAR 4"
-          subtitle="Multivariate Methods, Time Series, Biostatistics, Project Thesis"
+          subtitle="Multivariate Methods, Time Series, Biostatistics, Thesis Project"
           after={<Icon24ChevronRight />}
-          onClick={() => onSelectLevel(400)}
+          onClick={() => {
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            onSelectLevel(400);
+          }}
         >
           Level 400
         </Cell>
