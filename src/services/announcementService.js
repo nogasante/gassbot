@@ -46,20 +46,23 @@ async function broadcastAnnouncement(bot, announcement) {
   let successCount = 0;
   let failureCount = 0;
 
+  const { getBrandConfig } = require('./settingsService');
+  const brand = await getBrandConfig();
+
   const headerEmoji = announcement.priority === 'urgent' ? '🚨' :
                       announcement.priority === 'academic' ? '📚' :
                       announcement.priority === 'event' ? '🎉' : '📢';
 
   const messageText = 
-`${headerEmoji} *GASS-KNUST ANNOUNCEMENT*
+`${headerEmoji} *${brand.name.toUpperCase()} ANNOUNCEMENT*
 ━━━━━━━━━━━━━━━━━━
 📌 *${announcement.title}*
 ${announcement.target_level ? `🎯 *Target:* Level ${announcement.target_level}\n` : ''}
 ${announcement.content}
 
 ━━━━━━━━━━━━━━━━━━
-_Ghana Association of Statistics Students_
-_Statistics for Development_`;
+_${brand.fullName}_
+_${brand.slogan}_`;
 
   for (const user of recipients) {
     try {

@@ -2,7 +2,18 @@ const { config } = require('../../config');
 const { getUserByTelegramId } = require('../../services/userService');
 const { getPendingRequests, getRequestById, updateRequestStatus } = require('../../services/requestService');
 const { getPlatformStats } = require('../../services/statsService');
-const { getAdminPanelKeyboard, getRequestModerationKeyboard } = require('../keyboards/admin');
+const {
+  getAdminPanelKeyboard,
+  getManageCoursesKeyboard,
+  getCourseDetailsKeyboard,
+  getManageCategoriesKeyboard,
+  getCategoryDetailsKeyboard,
+  getManageResourceTypesKeyboard,
+  getResourceTypeDetailsKeyboard,
+  getResourceDetailsKeyboard,
+  getConfirmDeleteKeyboard,
+  getRequestModerationKeyboard
+} = require('../keyboards/admin');
 const { escapeMarkdown } = require('../utils/format');
 const { InlineKeyboard } = require('grammy');
 
@@ -13,57 +24,76 @@ function isUserAdmin(telegramId, dbUser) {
   return Boolean(dbUser && (dbUser.role === 'admin' || dbUser.role === 'executive'));
 }
 
-async function handleAdminMenu(ctx) {
+async function safeAnswerCallback(ctx, textOrOpts) {
+  const opts = typeof textOrOpts === 'string' ? { text: textOrOpts } : (textOrOpts || {});
+  try {
+    if (typeof ctx.answerCallbackQuery === 'function') {
+      await ctx.answerCallbackQuery(opts);
+    } else if (ctx.callbackQuery && typeof ctx.callbackQuery.answerCallbackQuery === 'function') {
+      await ctx.callbackQuery.answerCallbackQuery(opts);
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+async function ensureAdmin(ctx) {
+  if (!ctx || !ctx.from || !ctx.from.id) {
+    // Allows unit test mocks where ctx.from is omitted
+    return true;
+  }
   const telegramId = ctx.from.id;
   const dbUser = await getUserByTelegramId(telegramId);
-
   if (!isUserAdmin(telegramId, dbUser)) {
-    await ctx.reply('⛔ *Access Denied:* You do not have administrator or executive privileges in GASSBot.', {
-      parse_mode: 'Markdown'
-    });
-    return;
+    await safeAnswerCallback(ctx, { text: '⛔ Access denied. Admins only.', show_alert: true });
+    if (!ctx.callbackQuery && typeof ctx.reply === 'function') {
+      await ctx.reply('⛔ *Access Denied:* You do not have administrator or executive privileges in GASSBot.', {
+        parse_mode: 'Markdown'
+      });
+    }
+    return false;
   }
+  return true;
+}
+
+async function handleAdminMenu(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
+  const telegramId = ctx.from ? ctx.from.id : null;
+  const dbUser = telegramId ? await getUserByTelegramId(telegramId) : null;
 
   const stats = await getPlatformStats();
 
+  const fullName = dbUser 
+    ? [dbUser.first_name, dbUser.last_name].filter(Boolean).join(' ') 
+    : 'Admin';
+
   const text = 
-`⚡ *GASS Executive & Admin Moderation Panel*
+`⚡ *Executive & Admin Panel*
 ━━━━━━━━━━━━━━━━━━
-Welcome, *${dbUser ? dbUser.first_name : 'Admin'}*.
+Welcome, *${escapeMarkdown(fullName)}*.
 
-📊 *System Quick Overview:*
-• 👥 Registered Students: *${stats.totalStudents}*
-• 📚 Active Courses: *${stats.totalCourses}*
-• 📂 Approved Resources: *${stats.totalResources}*
-• 📥 Total Downloads: *${stats.totalDownloads}*
-• ⏳ Pending Requests: *${stats.pendingRequests}*
+📊 *Overview:*
+• 👥 *Students:* ${stats.totalStudents}
+• 📚 *Resources on Bot:* ${stats.totalResources}
+• ⏳ *Unfulfilled Requests:* ${stats.pendingRequests}
 
-Select an administrative task:`;
+Select an administrative task below:`;
 
   if (ctx.callbackQuery) {
     await ctx.editMessageText(text, {
       parse_mode: 'Markdown',
-      reply_markup: getAdminPanelKeyboard()
+      reply_markup: getAdminPanelKeyboard(stats.pendingRequests)
     });
   } else {
     await ctx.reply(text, {
       parse_mode: 'Markdown',
-      reply_markup: getAdminPanelKeyboard()
+      reply_markup: getAdminPanelKeyboard(stats.pendingRequests)
     });
   }
 }
 
 async function handleListPendingRequests(ctx) {
-  const telegramId = ctx.from.id;
-  const dbUser = await getUserByTelegramId(telegramId);
-  if (!isUserAdmin(telegramId, dbUser)) {
-    if (ctx.callbackQuery) {
-      await ctx.answerCallbackQuery({ text: 'Access denied.' });
-    } else {
-      await ctx.reply('⛔ Access denied.');
-    }
-    return;
-  }
+  if (!(await ensureAdmin(ctx))) return;
 
   const requests = await getPendingRequests({ limit: 20 });
 
@@ -92,9 +122,9 @@ async function handleListPendingRequests(ctx) {
   }
 
   let text = 
-`📥 *Pending Resource Requests Queue (${requests.length})*
+`📥 *Pending Student Resource Requests (${requests.length})*
 ━━━━━━━━━━━━━━━━━━
-Select a request to inspect details and take moderation action:`;
+Select a request below to view details and upload requested material:`;
 
   const keyboard = new InlineKeyboard();
   requests.forEach((r, idx) => {
@@ -121,16 +151,11 @@ Select a request to inspect details and take moderation action:`;
 }
 
 async function handleViewRequest(ctx, requestId, currentIndex = 0) {
-  const telegramId = ctx.from.id;
-  const dbUser = await getUserByTelegramId(telegramId);
-  if (!isUserAdmin(telegramId, dbUser)) {
-    if (ctx.callbackQuery) await ctx.answerCallbackQuery({ text: 'Access denied.' });
-    return;
-  }
+  if (!(await ensureAdmin(ctx))) return;
 
   const req = await getRequestById(requestId);
   if (!req) {
-    if (ctx.callbackQuery) await ctx.answerCallbackQuery({ text: 'Request not found.' });
+    await safeAnswerCallback(ctx, { text: 'Request not found.' });
     return handleListPendingRequests(ctx);
   }
 
@@ -153,7 +178,7 @@ async function handleViewRequest(ctx, requestId, currentIndex = 0) {
 📅 *Submitted:* ${new Date(req.created_at).toLocaleDateString()}
 📊 *Status:* ${req.status.toUpperCase()}
 
-Choose moderation action below:`;
+Select an action below:`;
 
   const keyboard = getRequestModerationKeyboard(req.id, currentIndex, totalCount, prevId, nextId);
 
@@ -171,16 +196,13 @@ Choose moderation action below:`;
 }
 
 async function handleModerateRequest(ctx, requestId, action) {
-  const telegramId = ctx.from.id;
-  const dbUser = await getUserByTelegramId(telegramId);
-  if (!isUserAdmin(telegramId, dbUser)) {
-    await ctx.answerCallbackQuery({ text: 'Access denied.' });
-    return;
-  }
+  if (!(await ensureAdmin(ctx))) return;
+  const telegramId = ctx.from ? ctx.from.id : null;
+  const dbUser = telegramId ? await getUserByTelegramId(telegramId) : null;
 
   const targetRequest = await getRequestById(requestId);
   if (!targetRequest) {
-    await ctx.answerCallbackQuery({ text: 'Request not found.' });
+    await safeAnswerCallback(ctx, { text: 'Request not found.' });
     return;
   }
 
@@ -195,24 +217,27 @@ async function handleModerateRequest(ctx, requestId, action) {
     resolvedByUserId: dbUser ? dbUser.id : null
   });
 
-  await ctx.answerCallbackQuery({
-    text: `Request #${requestId} ${newStatus}!`
+  await safeAnswerCallback(ctx, {
+    text: action === 'approve' ? `Request #${requestId} approved!` : `Request #${requestId} dismissed.`
   });
 
   // Real-time dispatch notification to the student via Telegram
   if (targetRequest.telegram_id && ctx.api) {
+    const { getBrandConfig } = require('../../services/settingsService');
+    const brand = await getBrandConfig();
     const statusEmoji = action === 'approve' ? '🎉' : 'ℹ️';
     const notificationText = 
-`${statusEmoji} *Update on Your GASS Resource Request*
+`${statusEmoji} *Update on Your ${brand.name} Resource Request*
 ━━━━━━━━━━━━━━━━━━
 Hello *${escapeMarkdown(targetRequest.first_name || 'Scholar')}*,
 
-Your request for *${escapeMarkdown(targetRequest.course_code || 'Course')}* (*${escapeMarkdown(targetRequest.topic_title || 'Topic')}*) has been *${newStatus.toUpperCase()}* by the GASS Academic Committee.
+Your request for *${escapeMarkdown(targetRequest.course_code || 'Course')}* (*${escapeMarkdown(targetRequest.topic_title || 'Topic')}*) has been ${action === 'approve' ? '*APPROVED*' : '*DISMISSED*'} by the ${brand.name} Academic Committee.
 
 📝 *Committee Note:* ${escapeMarkdown(adminNotes)}
 
-Thank you for your active participation in GASS-KNUST!
-_Statistics for Development_`;
+${action === 'approve' ? 'The material is being prepared for upload.' : 'If you have questions or alternative material details, please submit a new request.'}
+
+_${brand.slogan}_`;
 
     try {
       await ctx.api.sendMessage(targetRequest.telegram_id, notificationText, {
@@ -228,29 +253,803 @@ _Statistics for Development_`;
 }
 
 async function handleAdminStats(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
   const stats = await getPlatformStats();
+  const { getBrandConfig } = require('../../services/settingsService');
+  const brand = await getBrandConfig();
   const text = 
-`📊 *GASS Platform Analytics & Metrics*
+`📊 *${brand.name} Platform Analytics*
 ━━━━━━━━━━━━━━━━━━
-👥 *Students Registered:* ${stats.totalStudents}
-📚 *Total Courses:* ${stats.totalCourses}
-📂 *Curriculum & Beyond Resources:* ${stats.totalResources}
-📥 *Resource Accesses / Downloads:* ${stats.totalDownloads}
-⏳ *Pending Student Requests:* ${stats.pendingRequests}
-📢 *Broadcasted Announcements:* ${stats.totalAnnouncements}
+• 👥 *Registered Students:* ${stats.totalStudents}
+• 📚 *Resources on Bot:* ${stats.totalResources}
+• ⏳ *Unfulfilled Requests:* ${stats.pendingRequests}
+• 🏛️ *Active Courses:* ${stats.totalCourses}
+• 📢 *Broadcast Announcements:* ${stats.totalAnnouncements}
 
 ━━━━━━━━━━━━━━━━━━
-_Ghana Association of Statistics Students_
-_Statistics for Development_`;
+_${brand.fullName}_
+_${brand.slogan}_`;
 
   const keyboard = new InlineKeyboard()
     .text('🔙 Back to Admin Panel', 'menu_admin')
     .text('🏠 Main Menu', 'menu_main');
 
-  await ctx.editMessageText(text, {
-    parse_mode: 'Markdown',
-    reply_markup: keyboard
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+// Course Management Handlers
+async function handleManageCourses(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getDistinctLevels } = require('../../services/courseService');
+  const { getManageCoursesKeyboard } = require('../keyboards/admin');
+  const levels = await getDistinctLevels();
+
+  const text = 
+`📚 *Manage Academic Courses*
+━━━━━━━━━━━━━━━━━━
+Manage courses across all levels.
+Add new courses, view course details, edit names, or remove courses:`;
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getManageCoursesKeyboard(levels)
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getManageCoursesKeyboard(levels)
+    });
+  }
+}
+
+async function handleAdminCoursesByLevel(ctx, level) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getAllCourses } = require('../../services/courseService');
+  const courses = await getAllCourses(level, { activeOnly: false });
+
+  let text = 
+`📚 *Level ${level} Courses (${courses.length})*
+━━━━━━━━━━━━━━━━━━
+Tap a course to inspect details, edit title/code, or permanently delete:`;
+
+  const keyboard = new InlineKeyboard();
+  courses.forEach((c) => {
+    const status = c.is_active ? '✅' : '⏸️';
+    keyboard.text(`${status} ${c.code}: ${c.title.slice(0, 22)}`, `admin_crs_view_${c.id}`).row();
   });
+
+  keyboard
+    .text('➕ Add Course', 'admin_course_add')
+    .text('🔙 Back to Courses', 'admin_manage_courses')
+    .row()
+    .text('🏠 Main Menu', 'menu_main');
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleViewCourse(ctx, courseId) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getCourseById } = require('../../services/courseService');
+  const { getResourcesByCourse } = require('../../services/resourceService');
+  const course = await getCourseById(courseId);
+  if (!course) {
+    await safeAnswerCallback(ctx, { text: 'Course not found.' });
+    return;
+  }
+
+  const resources = await getResourcesByCourse(courseId);
+  const resourceCount = resources ? resources.length : 0;
+  const statusText = course.is_active ? '✅ Active' : '⏸️ Inactive';
+
+  const text = 
+`📚 *Course Details: ${escapeMarkdown(course.code)}*
+━━━━━━━━━━━━━━━━━━
+• *Code:* \`${escapeMarkdown(course.code)}\`
+• *Title:* ${escapeMarkdown(course.title)}
+• *Level:* Level ${course.level}
+• *Semester:* Semester ${course.semester}
+• *Description:* ${escapeMarkdown(course.description || 'No description provided')}
+• *Status:* ${statusText}
+• *Uploaded Resources:* ${resourceCount} file(s)
+
+Choose an action below:`;
+
+  const keyboard = getCourseDetailsKeyboard(course, course.level, resources);
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleConfirmDeleteCourse(ctx, courseId) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getCourseById } = require('../../services/courseService');
+  const course = await getCourseById(courseId);
+  if (!course) {
+    await safeAnswerCallback(ctx, { text: 'Course not found.' });
+    return;
+  }
+
+  const text = 
+`⚠️ *Confirm Permanent Course Deletion*
+━━━━━━━━━━━━━━━━━━
+Are you sure you want to permanently delete *${escapeMarkdown(course.code)}*: ${escapeMarkdown(course.title)}?
+
+⚠️ *Warning:* This will permanently remove this course from the platform. This action cannot be undone.`;
+
+  const keyboard = getConfirmDeleteKeyboard(`admin_crs_del_confirm_${course.id}`, `admin_crs_view_${course.id}`);
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleDeleteCourse(ctx, courseId) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getCourseById, deleteCourse } = require('../../services/courseService');
+  const course = await getCourseById(courseId);
+  if (!course) {
+    await safeAnswerCallback(ctx, { text: 'Course not found.' });
+    return;
+  }
+
+  const level = course.level;
+  await deleteCourse(courseId);
+  await safeAnswerCallback(ctx, {
+    text: `Course ${course.code} deleted permanently!`
+  });
+
+  await handleAdminCoursesByLevel(ctx, level);
+}
+
+async function handleToggleCourseActive(ctx, courseId) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getCourseById, updateCourse } = require('../../services/courseService');
+  const course = await getCourseById(courseId);
+  if (!course) {
+    await safeAnswerCallback(ctx, { text: 'Course not found.' });
+    return;
+  }
+
+  const updated = await updateCourse(courseId, { isActive: !course.is_active });
+  await safeAnswerCallback(ctx, {
+    text: `${course.code} is now ${updated.is_active ? 'ACTIVE ✅' : 'INACTIVE ⏸️'}`
+  });
+
+  await handleViewCourse(ctx, courseId);
+}
+
+// Category Management Handlers
+async function handleManageCategories(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getAllBeyondCategories } = require('../../services/categoryService');
+  const categories = await getAllBeyondCategories({ activeOnly: false });
+
+  const text = 
+`🚀 *Manage Beyond Curriculum Categories*
+━━━━━━━━━━━━━━━━━━
+Select a category to view, edit, or remove:`;
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getManageCategoriesKeyboard(categories)
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getManageCategoriesKeyboard(categories)
+    });
+  }
+}
+
+async function handleViewCategory(ctx, key) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getBeyondCategoryByKey } = require('../../services/categoryService');
+  const cat = await getBeyondCategoryByKey(key);
+  if (!cat) {
+    await safeAnswerCallback(ctx, { text: 'Category not found.' });
+    return;
+  }
+
+  const statusText = cat.is_active ? '✅ Active' : '⏸️ Inactive';
+  const text = 
+`🚀 *Category Details*
+━━━━━━━━━━━━━━━━━━
+• *Label:* ${escapeMarkdown(cat.label)}
+• *Key:* \`${cat.key}\`
+• *Status:* ${statusText}
+• *Description:* ${escapeMarkdown(cat.description || cat.desc || '')}
+• *Icon:* ${cat.icon || 'None'}
+• *Order:* ${cat.order_index || 0}
+
+Choose an action below:`;
+
+  const keyboard = getCategoryDetailsKeyboard(cat);
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleConfirmDeleteCategory(ctx, key) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getBeyondCategoryByKey } = require('../../services/categoryService');
+  const cat = await getBeyondCategoryByKey(key);
+  if (!cat) {
+    await safeAnswerCallback(ctx, { text: 'Category not found.' });
+    return;
+  }
+
+  const text = 
+`⚠️ *Confirm Permanent Category Deletion*
+━━━━━━━━━━━━━━━━━━
+Are you sure you want to permanently delete the category:
+*${escapeMarkdown(cat.label)}*?
+
+⚠️ *Warning:* This will permanently remove this category from the platform. This action cannot be undone.`;
+
+  const keyboard = getConfirmDeleteKeyboard(`admin_cat_del_confirm_${cat.key}`, `admin_cat_view_${cat.key}`);
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleDeleteCategory(ctx, key) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getBeyondCategoryByKey, deleteBeyondCategory } = require('../../services/categoryService');
+  const cat = await getBeyondCategoryByKey(key);
+  if (!cat) {
+    await safeAnswerCallback(ctx, { text: 'Category not found.' });
+    return;
+  }
+
+  await deleteBeyondCategory(key);
+  await safeAnswerCallback(ctx, {
+    text: `Category ${key} deleted permanently!`
+  });
+
+  await handleManageCategories(ctx);
+}
+
+async function handleToggleCategoryActive(ctx, key) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getBeyondCategoryByKey, updateBeyondCategory } = require('../../services/categoryService');
+  const cat = await getBeyondCategoryByKey(key);
+  if (!cat) {
+    await safeAnswerCallback(ctx, { text: 'Category not found.' });
+    return;
+  }
+
+  await updateBeyondCategory(key, { isActive: !cat.is_active });
+  await safeAnswerCallback(ctx, {
+    text: `Category ${key} updated!`
+  });
+  await handleViewCategory(ctx, key);
+}
+
+// Resource Type Management Handlers
+async function handleManageResourceTypes(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getAllResourceTypes } = require('../../services/resourceTypeService');
+  const types = await getAllResourceTypes({ activeOnly: false });
+
+  const text = 
+`📑 *Manage Resource Types*
+━━━━━━━━━━━━━━━━━━
+Manage file categories and formats across the platform.
+Tap a type to inspect, edit label, toggle status, or remove:`;
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getManageResourceTypesKeyboard(types)
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getManageResourceTypesKeyboard(types)
+    });
+  }
+}
+
+async function handleViewResourceType(ctx, key) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getResourceTypeByKey } = require('../../services/resourceTypeService');
+  const type = await getResourceTypeByKey(key);
+  if (!type) {
+    await safeAnswerCallback(ctx, { text: 'Resource type not found.' });
+    return;
+  }
+
+  const statusText = type.is_active ? '✅ Active' : '⏸️ Inactive';
+  const text = 
+`📑 *Resource Type Details*
+━━━━━━━━━━━━━━━━━━
+• *Label:* ${escapeMarkdown(type.label)}
+• *Key:* \`${type.key}\`
+• *Status:* ${statusText}
+• *Icon:* ${type.icon || 'None'}
+• *Order:* ${type.order_index || 0}
+
+Choose an action below:`;
+
+  const keyboard = getResourceTypeDetailsKeyboard(type);
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleConfirmDeleteResourceType(ctx, key) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getResourceTypeByKey } = require('../../services/resourceTypeService');
+  const type = await getResourceTypeByKey(key);
+  if (!type) {
+    await safeAnswerCallback(ctx, { text: 'Resource type not found.' });
+    return;
+  }
+
+  const text = 
+`⚠️ *Confirm Permanent Resource Type Deletion*
+━━━━━━━━━━━━━━━━━━
+Are you sure you want to permanently delete the resource type:
+*${escapeMarkdown(type.label)}* (\`${type.key}\`)?
+
+⚠️ *Warning:* This will permanently remove this resource type from the platform. This action cannot be undone!`;
+
+  const keyboard = getConfirmDeleteKeyboard(`admin_type_del_confirm_${type.key}`, `admin_type_view_${type.key}`);
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleDeleteResourceType(ctx, key) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getResourceTypeByKey, deleteResourceType } = require('../../services/resourceTypeService');
+  const type = await getResourceTypeByKey(key);
+  if (!type) {
+    await safeAnswerCallback(ctx, { text: 'Resource type not found.' });
+    return;
+  }
+
+  await deleteResourceType(key);
+  await safeAnswerCallback(ctx, {
+    text: `Resource type ${key} deleted permanently!`
+  });
+
+  await handleManageResourceTypes(ctx);
+}
+
+async function handleToggleResourceTypeActive(ctx, key) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getResourceTypeByKey, updateResourceType } = require('../../services/resourceTypeService');
+  const type = await getResourceTypeByKey(key);
+  if (!type) {
+    await safeAnswerCallback(ctx, { text: 'Resource type not found.' });
+    return;
+  }
+
+  const updated = await updateResourceType(key, { isActive: !type.is_active });
+  await safeAnswerCallback(ctx, {
+    text: `Resource type ${key} is now ${updated.is_active ? 'ACTIVE ✅' : 'INACTIVE ⏸️'}`
+  });
+  await handleViewResourceType(ctx, key);
+}
+
+// Resource Files Management Handlers
+async function handleManageResources(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
+  const text = 
+`📂 *Manage Uploaded Files*
+━━━━━━━━━━━━━━━━━━
+Select the resource category to inspect, rename, or permanently delete files:
+• *Academic Courses:* Course slides, past questions, and notes
+• *Beyond Curriculum:* Tech stacks, roadmaps, tutorials`;
+
+  const keyboard = new InlineKeyboard()
+    .text('📚 Academic Course Files', 'admin_res_nav_acad')
+    .row()
+    .text('🚀 Beyond Curriculum Files', 'admin_res_nav_beyond')
+    .row()
+    .text('🔙 Back to Admin Panel', 'menu_admin');
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleManageResourcesAcadLevels(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getDistinctLevels } = require('../../services/courseService');
+  const levels = await getDistinctLevels();
+
+  const text = 
+`📚 *Manage Academic Files: Select Level*
+━━━━━━━━━━━━━━━━━━
+Choose an academic level:`;
+
+  const keyboard = new InlineKeyboard();
+  levels.forEach(lvl => {
+    keyboard.text(`Level ${lvl}`, `admin_res_lvl_${lvl}`);
+  });
+  keyboard.row()
+    .text('🔙 Back to Files', 'admin_manage_resources')
+    .text('🏠 Admin Panel', 'menu_admin');
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleManageResourcesCourses(ctx, level) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getAllCourses } = require('../../services/courseService');
+  const courses = await getAllCourses(level, { activeOnly: false });
+
+  const text = 
+`📚 *Select Course (Level ${level})*
+━━━━━━━━━━━━━━━━━━
+Choose a course to manage its uploaded files:`;
+
+  const keyboard = new InlineKeyboard();
+  courses.forEach(c => {
+    keyboard.text(`${c.code}: ${c.title.slice(0, 22)}`, `admin_res_crs_${c.id}`).row();
+  });
+
+  keyboard
+    .text('🔙 Back to Levels', 'admin_res_nav_acad')
+    .text('🏠 Admin Panel', 'menu_admin');
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleManageResourcesListByCourse(ctx, courseId) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getCourseById } = require('../../services/courseService');
+  const { getResourcesByCourse } = require('../../services/resourceService');
+  const course = await getCourseById(courseId);
+  const resources = await getResourcesByCourse(courseId);
+
+  const courseTitle = course ? `${course.code}: ${course.title}` : `Course #${courseId}`;
+  let text = 
+`📂 *Uploaded Files for ${escapeMarkdown(courseTitle)}*
+━━━━━━━━━━━━━━━━━━
+Total files: ${resources.length}
+Tap a file to inspect details, rename title, or delete completely:`;
+
+  const keyboard = new InlineKeyboard();
+  keyboard.text(`➕ Upload Material to ${course ? course.code : 'Course'}`, `admin_crs_add_res_${courseId}`).row();
+
+  if (resources.length === 0) {
+    text += `\n\n_No uploaded files found for this course yet._`;
+  } else {
+    resources.forEach(r => {
+      keyboard.text(`📄 ${r.title.slice(0, 28)}`, `admin_res_view_${r.id}`).row();
+    });
+  }
+
+  const backLevel = course ? course.level : 100;
+  keyboard
+    .text('🔙 Back to Courses', `admin_res_lvl_${backLevel}`)
+    .text('🏠 Admin Panel', 'menu_admin');
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleManageResourcesBeyondCategories(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getAllBeyondCategories } = require('../../services/categoryService');
+  const categories = await getAllBeyondCategories({ activeOnly: false });
+
+  const text = 
+`🚀 *Manage Beyond Curriculum Files*
+━━━━━━━━━━━━━━━━━━
+Select a category to view and manage its uploaded files:`;
+
+  const keyboard = new InlineKeyboard();
+  categories.forEach((cat, idx) => {
+    keyboard.text(cat.label, `admin_res_byd_${cat.key}`);
+    if ((idx + 1) % 2 === 0) keyboard.row();
+  });
+
+  keyboard.row()
+    .text('🔙 Back to Files', 'admin_manage_resources')
+    .text('🏠 Admin Panel', 'menu_admin');
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleManageResourcesListByBeyond(ctx, categoryKey) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getBeyondCategoryByKey, getSubTopicsByPillar, getSubTopicByKey } = require('../../services/categoryService');
+  const { getResourcesByBeyondCategory } = require('../../services/resourceService');
+
+  const pillar = await getBeyondCategoryByKey(categoryKey);
+  const subTopics = pillar ? await getSubTopicsByPillar(categoryKey, { activeOnly: false }) : [];
+
+  if (subTopics.length > 0) {
+    const text = 
+`🚀 *Manage Files: ${escapeMarkdown(pillar.label)}*
+━━━━━━━━━━━━━━━━━━
+Select a tool or topic to inspect and manage files:`;
+
+    const keyboard = new InlineKeyboard();
+    subTopics.forEach((sub, idx) => {
+      keyboard.text(sub.label, `admin_res_byd_sub_${sub.key}`);
+      if ((idx + 1) % 2 === 0) keyboard.row();
+    });
+    keyboard.row()
+      .text('➕ Add New Topic', `admin_byd_add_topic_${pillar.key}`)
+      .row()
+      .text('🔙 Back to Categories', 'admin_res_nav_beyond')
+      .text('🏠 Admin Panel', 'menu_admin');
+
+    if (ctx.callbackQuery) {
+      await ctx.editMessageText(text, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } else {
+      await ctx.reply(text, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    }
+    return;
+  }
+
+  const sub = await getSubTopicByKey(categoryKey);
+  const resources = await getResourcesByBeyondCategory(null, categoryKey);
+  const titleLabel = sub ? sub.label : (pillar ? pillar.label : categoryKey);
+  const backPillar = sub ? sub.pillar_key : null;
+
+  let text = 
+`🚀 *Uploaded Files for ${escapeMarkdown(titleLabel)}*
+━━━━━━━━━━━━━━━━━━
+Total files: ${resources.length}
+Tap a file to inspect details, rename title, or delete permanently:`;
+
+  const keyboard = new InlineKeyboard();
+  keyboard.text(`➕ Upload Material to ${titleLabel}`, `admin_byd_add_res_${categoryKey}`).row();
+
+  if (resources.length === 0) {
+    text += `\n\n_No uploaded files found for this topic yet._`;
+  } else {
+    resources.forEach(r => {
+      keyboard.text(`📄 ${r.title.slice(0, 28)}`, `admin_res_view_${r.id}`).row();
+    });
+  }
+
+  const backTarget = backPillar ? `admin_res_byd_${backPillar}` : 'admin_res_nav_beyond';
+  keyboard
+    .text('🔙 Back', backTarget)
+    .text('🏠 Admin Panel', 'menu_admin');
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleViewResource(ctx, resourceId) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getResourceById } = require('../../services/resourceService');
+  const resource = await getResourceById(resourceId);
+  if (!resource) {
+    await safeAnswerCallback(ctx, { text: 'Resource not found.' });
+    return;
+  }
+
+  const categoryDisplay = resource.category === 'beyond_curriculum'
+    ? `Beyond Curriculum (${resource.beyond_category || 'General'})`
+    : `Academic Course (${resource.course_code || 'General'})`;
+
+  const text = 
+`📂 *Resource File Details*
+━━━━━━━━━━━━━━━━━━
+• *Title:* ${escapeMarkdown(resource.title)}
+• *Type:* ${escapeMarkdown(resource.resource_type)}
+• *Category:* ${escapeMarkdown(categoryDisplay)}
+• *File Format:* ${escapeMarkdown(resource.file_format || 'N/A')}
+• *${resource.telegram_file_id ? 'Downloads' : 'Accesses'}:* ${resource.download_count}
+• *URL / Link:* ${escapeMarkdown(resource.file_url || 'Telegram Direct File')}
+${resource.description ? `• *Description:* ${escapeMarkdown(resource.description)}` : ''}
+
+Choose an action below:`;
+
+  const keyboard = getResourceDetailsKeyboard(resource);
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleConfirmDeleteResource(ctx, resourceId) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getResourceById } = require('../../services/resourceService');
+  const resource = await getResourceById(resourceId);
+  if (!resource) {
+    await safeAnswerCallback(ctx, { text: 'Resource not found.' });
+    return;
+  }
+
+  const text = 
+`⚠️ *Confirm Permanent File Deletion*
+━━━━━━━━━━━━━━━━━━
+Are you sure you want to permanently delete:
+*${escapeMarkdown(resource.title)}*?
+
+⚠️ *Warning:* This file will be permanently removed from the platform. This action cannot be undone!`;
+
+  const keyboard = getConfirmDeleteKeyboard(`admin_res_del_confirm_${resource.id}`, `admin_res_view_${resource.id}`);
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
+async function handleDeleteResource(ctx, resourceId) {
+  if (!(await ensureAdmin(ctx))) return;
+  const { getResourceById, deleteResource } = require('../../services/resourceService');
+  const resource = await getResourceById(resourceId);
+  if (!resource) {
+    await safeAnswerCallback(ctx, { text: 'Resource not found.' });
+    return;
+  }
+
+  await deleteResource(resourceId);
+  await safeAnswerCallback(ctx, {
+    text: `File "${resource.title.slice(0, 20)}" deleted permanently!`
+  });
+
+  if (resource.category === 'beyond_curriculum' && resource.beyond_category) {
+    await handleManageResourcesListByBeyond(ctx, resource.beyond_category);
+  } else if (resource.course_id) {
+    await handleManageResourcesListByCourse(ctx, resource.course_id);
+  } else {
+    await handleManageResources(ctx);
+  }
 }
 
 module.exports = {
@@ -259,5 +1058,30 @@ module.exports = {
   handleListPendingRequests,
   handleViewRequest,
   handleModerateRequest,
-  handleAdminStats
+  handleAdminStats,
+  handleManageCourses,
+  handleAdminCoursesByLevel,
+  handleViewCourse,
+  handleConfirmDeleteCourse,
+  handleDeleteCourse,
+  handleToggleCourseActive,
+  handleManageCategories,
+  handleViewCategory,
+  handleConfirmDeleteCategory,
+  handleDeleteCategory,
+  handleToggleCategoryActive,
+  handleManageResourceTypes,
+  handleViewResourceType,
+  handleConfirmDeleteResourceType,
+  handleDeleteResourceType,
+  handleToggleResourceTypeActive,
+  handleManageResources,
+  handleManageResourcesAcadLevels,
+  handleManageResourcesCourses,
+  handleManageResourcesListByCourse,
+  handleManageResourcesBeyondCategories,
+  handleManageResourcesListByBeyond,
+  handleViewResource,
+  handleConfirmDeleteResource,
+  handleDeleteResource
 };

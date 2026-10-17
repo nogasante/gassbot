@@ -3,6 +3,7 @@ const cors = require('cors');
 const { webhookCallback } = require('grammy');
 const { config } = require('../config');
 const { query } = require('../config/database');
+const path = require('path');
 const apiRouter = require('./routes/api');
 
 function createServer(bot = null) {
@@ -11,6 +12,10 @@ function createServer(bot = null) {
   app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Serve static files for Student Mini WebApp
+  const publicDir = path.join(__dirname, '../../public');
+  app.use(express.static(publicDir));
 
   // Telegram Webhook Endpoint (if bot is provided and webhook is enabled)
   if (bot && config.botMode === 'webhook') {
@@ -31,10 +36,13 @@ function createServer(bot = null) {
       dbStatus = `error: ${err.message}`;
     }
 
+    const { getBrandConfig } = require('../services/settingsService');
+    const brand = await getBrandConfig();
+
     return res.json({
       status: 'ok',
-      service: config.brand.name,
-      slogan: config.brand.slogan,
+      service: brand.name,
+      slogan: brand.slogan,
       mode: config.botMode,
       environment: config.env,
       database: dbStatus,
@@ -45,6 +53,11 @@ function createServer(bot = null) {
 
   // Mount API
   app.use('/api', apiRouter);
+
+  // SPA fallback for Mini WebApp client routes
+  app.get(['/', '/portal', '/app'], (req, res) => {
+    res.sendFile(path.join(publicDir, 'index.html'));
+  });
 
   // 404 handler
   app.use((req, res) => {

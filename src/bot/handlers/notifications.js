@@ -1,4 +1,5 @@
 const { getUserByTelegramId, toggleNotifications, updateAcademicLevel } = require('../../services/userService');
+const { getDistinctLevels } = require('../../services/courseService');
 const { InlineKeyboard } = require('grammy');
 
 async function handleNotificationsMenu(ctx) {
@@ -25,14 +26,21 @@ Choose an option below to update your preferences:`;
   } else {
     keyboard.text('🔔 Turn On Notifications', 'notif_toggle_on');
   }
+  keyboard.row();
 
-  keyboard.row()
-    .text('🎯 Set Level 100', 'notif_set_100')
-    .text('🎯 Set Level 200', 'notif_set_200')
-    .row()
-    .text('🎯 Set Level 300', 'notif_set_300')
-    .text('🎯 Set Level 400', 'notif_set_400')
-    .row()
+  const levels = await getDistinctLevels();
+  const list = levels && levels.length > 0 ? levels : [100, 200, 300, 400];
+  for (let i = 0; i < list.length; i += 2) {
+    const l1 = list[i];
+    const l2 = list[i + 1];
+    if (l2) {
+      keyboard.text(`🎯 Set Level ${l1}`, `notif_set_${l1}`).text(`🎯 Set Level ${l2}`, `notif_set_${l2}`).row();
+    } else {
+      keyboard.text(`🎯 Set Level ${l1}`, `notif_set_${l1}`).row();
+    }
+  }
+
+  keyboard
     .text('🎯 All Levels (Reset)', 'notif_set_all')
     .row()
     .text('🏠 Main Menu', 'menu_main');

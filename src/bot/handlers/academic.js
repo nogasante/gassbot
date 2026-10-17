@@ -1,6 +1,7 @@
 const { getLevelsKeyboard, getSemestersKeyboard, getCoursesKeyboard, getCourseActionKeyboard } = require('../keyboards/academic');
-const { getCoursesByLevelAndSemester, getCourseById, getTopicsByCourseId } = require('../../services/courseService');
+const { getCoursesByLevelAndSemester, getCourseById, getTopicsByCourseId, getDistinctLevels } = require('../../services/courseService');
 const { getResourcesByCourse } = require('../../services/resourceService');
+const { getAllResourceTypes } = require('../../services/resourceTypeService');
 const { InlineKeyboard } = require('grammy');
 
 async function handleAcademicMenu(ctx) {
@@ -9,15 +10,17 @@ async function handleAcademicMenu(ctx) {
 ━━━━━━━━━━━━━━━━━━
 Select your academic year to browse courses, lecture slides, past questions, and lab manuals:`;
 
+  const levels = await getDistinctLevels();
+
   if (ctx.callbackQuery) {
     await ctx.editMessageText(text, {
       parse_mode: 'Markdown',
-      reply_markup: getLevelsKeyboard()
+      reply_markup: getLevelsKeyboard(levels)
     });
   } else {
     await ctx.reply(text, {
       parse_mode: 'Markdown',
-      reply_markup: getLevelsKeyboard()
+      reply_markup: getLevelsKeyboard(levels)
     });
   }
 }
@@ -80,9 +83,11 @@ async function handleCourseSelect(ctx, courseId) {
 
 Select an action below:`;
 
+  const resourceTypes = await getAllResourceTypes();
+
   await ctx.editMessageText(text, {
     parse_mode: 'Markdown',
-    reply_markup: getCourseActionKeyboard(course.id, course.level, course.semester)
+    reply_markup: getCourseActionKeyboard(course.id, course.level, course.semester, resourceTypes)
   });
 }
 
@@ -126,13 +131,13 @@ No ${resourceType ? resourceType.replace('_', ' ') : 'course'} resources are cur
     const typeLabel = r.resource_type.toUpperCase().replace('_', ' ');
     text += `\n*${idx + 1}. ${r.title}*\n`;
     text += `   🏷️ _Type:_ ${typeLabel} | 💾 _Format:_ ${r.file_format.toUpperCase()}\n`;
-    text += `   📥 _Downloads:_ ${r.download_count}\n`;
+    text += `   ${r.telegram_file_id ? '📥 _Downloads:_' : '👁️ _Accesses:_'} ${r.download_count}\n`;
     if (r.telegram_file_id) {
       keyboard.text(`📥 Send File #${idx + 1}`, `res_send_${r.id}`);
       if ((idx + 1) % 2 === 0) keyboard.row();
     } else if (r.file_url && r.file_url.startsWith('http')) {
       text += `   🔗 [Link](${r.file_url})\n`;
-      keyboard.url(`📥 Open #${idx + 1}`, r.file_url);
+      keyboard.url(`🔗 Open #${idx + 1}`, r.file_url);
       if ((idx + 1) % 2 === 0) keyboard.row();
     }
   });
@@ -159,7 +164,9 @@ async function handleSendResourceFile(ctx, resourceId) {
   await ctx.answerCallbackQuery({ text: 'Sending document...' });
   await incrementDownloadCount(resourceId);
 
-  const caption = `📄 *${resource.title}*\n${resource.course_code ? `Course: ${resource.course_code}\n` : ''}Slogan: _"Statistics for Development"_`;
+  const { getBrandConfig } = require('../../services/settingsService');
+  const brand = await getBrandConfig();
+  const caption = `📄 *${resource.title}*\n${resource.course_code ? `Course: ${resource.course_code}\n` : ''}Slogan: _"${brand.slogan}"_`;
 
   if (resource.telegram_file_id) {
     try {
@@ -173,13 +180,13 @@ async function handleSendResourceFile(ctx, resourceId) {
     } catch (err) {
       console.error('Error sending Telegram file:', err);
       if (resource.file_url && resource.file_url.startsWith('http')) {
-        await ctx.reply(`🔗 *${resource.title}*\nDownload link: ${resource.file_url}`, { parse_mode: 'Markdown' });
+        await ctx.reply(`🔗 *${resource.title}*\nLink: ${resource.file_url}`, { parse_mode: 'Markdown' });
       } else {
         await ctx.reply('⚠️ Could not deliver this file directly. Please check back shortly.');
       }
     }
   } else if (resource.file_url) {
-    await ctx.reply(`🔗 *${resource.title}*\nDownload link: ${resource.file_url}`, { parse_mode: 'Markdown' });
+    await ctx.reply(`🔗 *${resource.title}*\nLink: ${resource.file_url}`, { parse_mode: 'Markdown' });
   }
 }
 
@@ -204,20 +211,18 @@ async function handleQuickCourseRequest(ctx, courseId) {
     userId: dbUser.id,
     courseCode: course.code,
     topicTitle: course.title,
-    details: `1-click request for ${course.code} (${course.title})`
+    details: `Request for ${course.code} (${course.title})`
   });
 
-  await ctx.answerCallbackQuery({ text: `Request logged for ${course.code}!` });
+  await ctx.answerCallbackQuery({ text: `Request logged for ${course.code}` });
 
   const text = 
-`✅ *Request Submitted for ${course.code}!*
+`✅ *Request Submitted*
 ━━━━━━━━━━━━━━━━━━
-📌 *Course:* ${course.code} — ${course.title}
-📋 *Request ID:* #${created.id}
+Course: *${course.code}* — ${course.title}
+Request ID: #${created.id}
 
-We have recorded your request and alerted the GASS Academic Committee. As soon as materials for *${course.code}* are uploaded, you will receive them right here!
-
-_Statistics for Development_`;
+Your request has been received. You will be sent the material once an executive uploads it.`;
 
   const keyboard = new InlineKeyboard()
     .text('🔙 Back to Course', `acad_crs_${courseId}`)

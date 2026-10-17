@@ -29,20 +29,23 @@ async function handleSearchCommand(ctx) {
 
 async function handleSearchMenuPrompt(ctx) {
   const promptText = 
-`🔍 *Search GASS Resources*
+`🔍 *Find GASS Resources*
 ━━━━━━━━━━━━━━━━━━
-Simply send any course code or keyword directly in the chat:
+Find past questions, lecture slides, syllabus, and software tutorials.
 
-_Examples:_
-• \`MATH 171\`
-• \`STAT 266\`
-• \`regression\`
-• \`python\`
+*Quick Options:*
+1️⃣ Tap the buttons below to browse by level or category.
+2️⃣ Or simply send any course code directly in this chat (e.g. \`STAT 266\`, \`MATH 171\`, or \`Python\`).
 
-The bot will find the material or let you request it in 1 click!`;
+The bot will find your file or let you submit a request if it has not yet been uploaded.`;
 
   const keyboard = new InlineKeyboard()
-    .text('🏠 Return to Main Menu', 'menu_main');
+    .text('📚 Browse Academic by Level', 'menu_academic')
+    .row()
+    .text('🚀 Browse Beyond Curriculum', 'menu_beyond')
+    .row()
+    .text('📝 Request a Resource', 'menu_request')
+    .text('🏠 Main Menu', 'menu_main');
 
   if (ctx.callbackQuery) {
     await ctx.editMessageText(promptText, {
@@ -69,7 +72,7 @@ async function executeSearch(ctx, queryTerm) {
 
     if (resources.length === 0) {
       const keyboard = new InlineKeyboard()
-        .text(`📝 1-Click Request ${matchedCourse.code} Materials`, `req_course_${matchedCourse.id}`)
+        .text(`📝 Request ${matchedCourse.code}`, `req_course_${matchedCourse.id}`)
         .row()
         .text('🔙 Back to Courses', 'menu_academic')
         .text('🏠 Main Menu', 'menu_main');
@@ -79,7 +82,7 @@ async function executeSearch(ctx, queryTerm) {
         `Level ${matchedCourse.level} • Semester ${matchedCourse.semester}\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
         `No files have been uploaded for *${matchedCourse.code}* yet.\n\n` +
-        `💡 Tap the button below to alert the Academic Committee with 1 click:`,
+        `Tap below to request materials for this course:`,
         {
           parse_mode: 'Markdown',
           reply_markup: keyboard
@@ -99,14 +102,14 @@ async function executeSearch(ctx, queryTerm) {
       const typeLabel = (r.resource_type || 'material').toUpperCase().replace('_', ' ');
       text += `\n*${idx + 1}. ${escapeMarkdown(r.title)}*\n`;
       text += `   🏷️ ${typeLabel} | 💾 ${(r.file_format || 'pdf').toUpperCase()}\n`;
-      text += `   📥 Downloads: ${r.download_count}\n`;
+      text += `   ${r.telegram_file_id ? '📥 Downloads:' : '👁️ Accesses:'} ${r.download_count}\n`;
 
       if (r.telegram_file_id) {
         keyboard.text(`📥 Send File #${idx + 1}`, `res_send_${r.id}`);
         if ((idx + 1) % 2 === 0) keyboard.row();
       } else if (r.file_url && r.file_url.startsWith('http')) {
-        text += `   🔗 [Direct Link](${r.file_url})\n`;
-        keyboard.url(`📥 Download #${idx + 1}`, r.file_url);
+        text += `   🔗 [Link](${r.file_url})\n`;
+        keyboard.url(`🔗 Open #${idx + 1}`, r.file_url);
         if ((idx + 1) % 2 === 0) keyboard.row();
       }
     });
@@ -129,15 +132,15 @@ async function executeSearch(ctx, queryTerm) {
   if (results.length === 0) {
     const encodedRaw = Buffer.from(cleanTerm.slice(0, 40)).toString('base64url');
     const keyboard = new InlineKeyboard()
-      .text(`📝 1-Click Request "${cleanTerm.slice(0, 20)}"`, `req_raw_${encodedRaw}`)
+      .text(`📝 Request Material`, `req_raw_${encodedRaw}`)
       .row()
       .text('🏠 Main Menu', 'menu_main');
 
     await ctx.reply(
       `🔍 *Search Results for:* "${escapedQuery}"\n` +
       `━━━━━━━━━━━━━━━━━━\n` +
-      `No uploaded materials found matching *"${escapedQuery}"*.\n\n` +
-      `💡 Tap below to auto-submit a request to the Academic Committee:`,
+      `No uploaded materials found for *"${escapedQuery}"*.\n\n` +
+      `Tap below to submit a request:`,
       {
         parse_mode: 'Markdown',
         reply_markup: keyboard
@@ -157,14 +160,14 @@ async function executeSearch(ctx, queryTerm) {
     const safeTitle = escapeMarkdown(r.title);
     const safeType = escapeMarkdown((r.resource_type || 'material').toUpperCase().replace('_', ' '));
     text += `\n*${idx + 1}. ${coursePrefix}${safeTitle}*\n`;
-    text += `   🏷️ ${safeType} | 📥 Downloads: ${r.download_count}\n`;
+    text += `   🏷️ ${safeType} | ${r.telegram_file_id ? '📥 Downloads:' : '👁️ Accesses:'} ${r.download_count}\n`;
 
     if (r.telegram_file_id) {
       keyboard.text(`📥 Send File #${idx + 1}`, `res_send_${r.id}`);
       if ((idx + 1) % 2 === 0) keyboard.row();
     } else if (r.file_url && r.file_url.startsWith('http')) {
-      text += `   🔗 [Download Resource](${r.file_url})\n`;
-      keyboard.url(`📥 Download #${idx + 1}`, r.file_url);
+      text += `   🔗 [Open Material](${r.file_url})\n`;
+      keyboard.url(`🔗 Open #${idx + 1}`, r.file_url);
       if ((idx + 1) % 2 === 0) keyboard.row();
     }
   });

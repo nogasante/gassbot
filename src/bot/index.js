@@ -11,7 +11,13 @@ const {
   handleResourceList,
   handleQuickCourseRequest
 } = require('./handlers/academic');
-const { handleBeyondMenu, handleBeyondCategorySelect } = require('./handlers/beyond');
+const {
+  handleBeyondMenu,
+  handleBeyondPillarSelect,
+  handleBeyondSubTopicSelect,
+  handleBeyondResourceView,
+  handleBeyondCategorySelect
+} = require('./handlers/beyond');
 const { handleSearchCommand, handleSearchMenuPrompt, executeSearch } = require('./handlers/search');
 const { handleNotificationsMenu, handleNotificationToggle, handleAcademicLevelPreference } = require('./handlers/notifications');
 const { handleAppInfo } = require('./handlers/app');
@@ -21,12 +27,57 @@ const {
   handleListPendingRequests,
   handleViewRequest,
   handleModerateRequest,
-  handleAdminStats
+  handleAdminStats,
+  handleManageCourses,
+  handleAdminCoursesByLevel,
+  handleViewCourse,
+  handleConfirmDeleteCourse,
+  handleDeleteCourse,
+  handleToggleCourseActive,
+  handleManageCategories,
+  handleViewCategory,
+  handleConfirmDeleteCategory,
+  handleDeleteCategory,
+  handleToggleCategoryActive,
+  handleManageResourceTypes,
+  handleViewResourceType,
+  handleConfirmDeleteResourceType,
+  handleDeleteResourceType,
+  handleToggleResourceTypeActive,
+  handleManageResources,
+  handleManageResourcesAcadLevels,
+  handleManageResourcesCourses,
+  handleManageResourcesListByCourse,
+  handleManageResourcesBeyondCategories,
+  handleManageResourcesListByBeyond,
+  handleViewResource,
+  handleConfirmDeleteResource,
+  handleDeleteResource
 } = require('./handlers/admin');
+const {
+  handleRequestMenu,
+  handleRequestLevelMenu,
+  handleRequestSemesterMenu,
+  handleRequestCourseList,
+  handleRequestCoursePick,
+  handleRequestBeyondMenu,
+  handleRequestBeyondPick
+} = require('./handlers/request');
 
 const { requestResourceConversation } = require('./conversations/requestConversation');
 const { broadcastConversation } = require('./conversations/broadcastConversation');
 const { addResourceConversation } = require('./conversations/addResourceConversation');
+const {
+  adminAddCourseConversation,
+  adminAddCategoryConversation,
+  adminAddResourceTypeConversation,
+  adminAddTopicConversation,
+  adminEditCourseTitleConversation,
+  adminEditCourseCodeConversation,
+  adminEditResourceTitleConversation,
+  adminEditCategoryLabelConversation,
+  adminEditResourceTypeLabelConversation
+} = require('./conversations/adminManagementConversations');
 const { handleSendResourceFile } = require('./handlers/academic');
 const { getMainMenuKeyboard } = require('./keyboards/mainMenu');
 const { isUserAdmin } = require('./handlers/admin');
@@ -41,9 +92,22 @@ function createBot(token = config.botToken) {
   bot.use(createConversation(requestResourceConversation));
   bot.use(createConversation(broadcastConversation));
   bot.use(createConversation(addResourceConversation));
+  bot.use(createConversation(adminAddCourseConversation));
+  bot.use(createConversation(adminAddCategoryConversation));
+  bot.use(createConversation(adminAddResourceTypeConversation));
+  bot.use(createConversation(adminAddTopicConversation));
+  bot.use(createConversation(adminEditCourseTitleConversation));
+  bot.use(createConversation(adminEditCourseCodeConversation));
+  bot.use(createConversation(adminEditResourceTitleConversation));
+  bot.use(createConversation(adminEditCategoryLabelConversation));
+  bot.use(createConversation(adminEditResourceTypeLabelConversation));
 
   // Global Error Handler
   bot.catch((err) => {
+    const desc = err.error?.description || err.error?.message || '';
+    if (desc.includes('query is too old') || desc.includes('message is not modified')) {
+      return;
+    }
     console.error('Bot Error encountered in update:', err.ctx?.update?.update_id, err.error);
   });
 
@@ -53,9 +117,7 @@ function createBot(token = config.botToken) {
   bot.command('courses', handleAcademicMenu);
   bot.command('beyond', handleBeyondMenu);
   bot.command('search', handleSearchCommand);
-  bot.command('request', async (ctx) => {
-    await ctx.conversation.enter('requestResourceConversation');
-  });
+  bot.command('request', handleRequestMenu);
   bot.command('notifications', handleNotificationsMenu);
   bot.command('app', handleAppInfo);
   bot.command('help', handleHelp);
@@ -66,11 +128,9 @@ function createBot(token = config.botToken) {
   bot.hears(['📚 Academic', '📚 Academic Resources'], handleAcademicMenu);
   bot.hears(['🚀 Beyond', '🚀 Beyond Curriculum'], handleBeyondMenu);
   bot.hears(['🔍 Find Resource', '🔍 Search'], handleSearchMenuPrompt);
-  bot.hears(['📝 Request File', '📝 Request Resource'], async (ctx) => {
-    await ctx.conversation.enter('requestResourceConversation');
-  });
+  bot.hears(['📝 Request File', '📝 Request Resource'], handleRequestMenu);
   bot.hears(['🔔 Alerts', '🔔 Notifications'], handleNotificationsMenu);
-  bot.hears(['🌐 Web App', '📲 Get App'], handleAppInfo);
+  bot.hears(['📲 Gassa App', '📲 Get App', '🌐 Web App'], handleAppInfo);
   bot.hears(['⚡ Admin Panel', '⚡ Admin'], handleAdminMenu);
   bot.hears('➕ Upload File', async (ctx) => {
     await ctx.conversation.enter('addResourceConversation');
@@ -82,11 +142,13 @@ function createBot(token = config.botToken) {
     await ctx.answerCallbackQuery();
     const dbUser = await getUserByTelegramId(ctx.from.id);
     const isAdmin = isUserAdmin(ctx.from.id, dbUser);
+    const { getBrandConfig } = require('../services/settingsService');
+    const brand = await getBrandConfig();
     await ctx.editMessageText(
-      `🇬🇭 *GASSBot Main Navigation*\n━━━━━━━━━━━━━━━━━━\n_"${config.brand.slogan}"_\n\nPlease select an option below:`,
+      `🇬🇭 *${brand.name} Main Navigation*\n━━━━━━━━━━━━━━━━━━\n_"${brand.slogan}"_\n\nPlease select an option below:`,
       {
         parse_mode: 'Markdown',
-        reply_markup: getMainMenuKeyboard(isAdmin)
+        reply_markup: getMainMenuKeyboard(isAdmin, brand.links?.playStore)
       }
     );
   });
@@ -108,7 +170,7 @@ function createBot(token = config.botToken) {
 
   bot.callbackQuery('menu_request', async (ctx) => {
     await ctx.answerCallbackQuery();
-    await ctx.conversation.enter('requestResourceConversation');
+    await handleRequestMenu(ctx);
   });
 
   bot.callbackQuery('menu_notifications', async (ctx) => {
@@ -191,20 +253,18 @@ function createBot(token = config.botToken) {
       userId: dbUser.id,
       courseCode: queryText.slice(0, 30).toUpperCase(),
       topicTitle: queryText,
-      details: `1-click search request for "${queryText}"`
+      details: `Request for "${queryText}"`
     });
 
-    await ctx.answerCallbackQuery({ text: 'Request logged!' });
+    await ctx.answerCallbackQuery({ text: 'Request submitted.' });
 
     const text = 
-`✅ *Request Auto-Logged!*
+`✅ *Request Submitted*
 ━━━━━━━━━━━━━━━━━━
-📌 *Requested Material:* ${escapeMarkdown(queryText)}
-📋 *Request ID:* #${created.id}
+Material: *${escapeMarkdown(queryText)}*
+Request ID: #${created.id}
 
-We have alerted the GASS Academic Committee. As soon as materials for *${escapeMarkdown(queryText)}* are uploaded, you will receive them right here!
-
-_Statistics for Development_`;
+Your request has been received. You will be sent the file once an executive uploads it.`;
 
     await ctx.editMessageText(text, {
       parse_mode: 'Markdown',
@@ -214,11 +274,77 @@ _Statistics for Development_`;
     });
   });
 
-  // Beyond Curriculum Sub-navigation
+  // Button-Driven Request Navigation
+  bot.callbackQuery('req_nav_acad', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleRequestLevelMenu(ctx);
+  });
+
+  bot.callbackQuery(/^req_lvl_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const level = parseInt(ctx.match[1], 10);
+    await handleRequestSemesterMenu(ctx, level);
+  });
+
+  bot.callbackQuery(/^req_sem_(\d+)_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const level = parseInt(ctx.match[1], 10);
+    const semester = parseInt(ctx.match[2], 10);
+    await handleRequestCourseList(ctx, level, semester);
+  });
+
+  bot.callbackQuery(/^req_crs_pick_(\d+)$/, async (ctx) => {
+    const courseId = parseInt(ctx.match[1], 10);
+    await handleRequestCoursePick(ctx, courseId);
+  });
+
+  bot.callbackQuery('req_nav_beyond', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleRequestBeyondMenu(ctx);
+  });
+
+  bot.callbackQuery(/^req_byd_pick_(.+)$/, async (ctx) => {
+    const categoryKey = ctx.match[1];
+    await handleRequestBeyondPick(ctx, categoryKey);
+  });
+
+  bot.callbackQuery('req_custom_text', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await ctx.conversation.enter('requestResourceConversation');
+  });
+
+  // Beyond Curriculum Flow (Pillars -> Subtopics -> Resources -> Cards)
+  bot.callbackQuery(/^beyond_pillar_(.+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const pillarKey = ctx.match[1];
+    await handleBeyondPillarSelect(ctx, pillarKey);
+  });
+
+  bot.callbackQuery(/^beyond_sub_(.+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const subTopicKey = ctx.match[1];
+    await handleBeyondSubTopicSelect(ctx, subTopicKey);
+  });
+
+  bot.callbackQuery(/^beyond_res_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const resourceId = parseInt(ctx.match[1], 10);
+    await handleBeyondResourceView(ctx, resourceId);
+  });
+
   bot.callbackQuery(/^beyond_cat_(.+)$/, async (ctx) => {
     await ctx.answerCallbackQuery();
     const categoryKey = ctx.match[1];
     await handleBeyondCategorySelect(ctx, categoryKey);
+  });
+
+  bot.callbackQuery(/^res_bookmark_(\d+)$/, async (ctx) => {
+    const resourceId = parseInt(ctx.match[1], 10);
+    const { getOrCreateUser } = require('../services/userService');
+    const { saveResourceBookmark } = require('../services/resourceService');
+    const user = await getOrCreateUser(ctx.from);
+    await saveResourceBookmark(user.id, resourceId);
+    await ctx.answerCallbackQuery({ text: '⭐ Saved to your bookmarks!' });
   });
 
   // Notifications toggles
@@ -249,10 +375,14 @@ _Statistics for Development_`;
     await handleViewRequest(ctx, requestId, index);
   });
 
-  bot.callbackQuery(/^admin_req_(approve|reject)_(\d+)$/, async (ctx) => {
-    const action = ctx.match[1];
-    const requestId = parseInt(ctx.match[2], 10);
-    await handleModerateRequest(ctx, requestId, action);
+  bot.callbackQuery(/^admin_req_approve_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await ctx.conversation.enter('addResourceConversation');
+  });
+
+  bot.callbackQuery(/^admin_req_reject_(\d+)$/, async (ctx) => {
+    const requestId = parseInt(ctx.match[1], 10);
+    await handleModerateRequest(ctx, requestId, 'reject');
   });
 
   bot.callbackQuery('admin_broadcast', async (ctx) => {
@@ -279,6 +409,225 @@ _Statistics for Development_`;
     await handleAdminStats(ctx);
   });
 
+  // Admin Course Management
+  bot.callbackQuery('admin_manage_courses', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleManageCourses(ctx);
+  });
+
+  bot.callbackQuery('admin_course_add', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await ctx.conversation.enter('adminAddCourseConversation');
+  });
+
+  bot.callbackQuery(/^admin_crs_lvl_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const level = parseInt(ctx.match[1], 10);
+    await handleAdminCoursesByLevel(ctx, level);
+  });
+
+  bot.callbackQuery(/^admin_crs_view_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const courseId = parseInt(ctx.match[1], 10);
+    await handleViewCourse(ctx, courseId);
+  });
+
+  bot.callbackQuery(/^admin_crs_edit_title_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    ctx.session.editCourseId = parseInt(ctx.match[1], 10);
+    await ctx.conversation.enter('adminEditCourseTitleConversation');
+  });
+
+  bot.callbackQuery(/^admin_crs_edit_code_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    ctx.session.editCourseId = parseInt(ctx.match[1], 10);
+    await ctx.conversation.enter('adminEditCourseCodeConversation');
+  });
+
+  bot.callbackQuery(/^admin_crs_del_confirm_(\d+)$/, async (ctx) => {
+    const courseId = parseInt(ctx.match[1], 10);
+    await handleDeleteCourse(ctx, courseId);
+  });
+
+  bot.callbackQuery(/^admin_crs_del_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const courseId = parseInt(ctx.match[1], 10);
+    await handleConfirmDeleteCourse(ctx, courseId);
+  });
+
+  bot.callbackQuery(/^admin_crs_toggle_(\d+)$/, async (ctx) => {
+    const courseId = parseInt(ctx.match[1], 10);
+    await handleToggleCourseActive(ctx, courseId);
+  });
+
+  // Admin Resource Files Management
+  bot.callbackQuery('admin_manage_resources', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleManageResources(ctx);
+  });
+
+  bot.callbackQuery('admin_res_nav_acad', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleManageResourcesAcadLevels(ctx);
+  });
+
+  bot.callbackQuery(/^admin_res_lvl_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const level = parseInt(ctx.match[1], 10);
+    await handleManageResourcesCourses(ctx, level);
+  });
+
+  bot.callbackQuery(/^admin_res_crs_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const courseId = parseInt(ctx.match[1], 10);
+    await handleManageResourcesListByCourse(ctx, courseId);
+  });
+
+  bot.callbackQuery('admin_res_nav_beyond', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleManageResourcesBeyondCategories(ctx);
+  });
+
+  bot.callbackQuery(/^admin_res_byd_(?:sub_)?(.+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const key = ctx.match[1];
+    await handleManageResourcesListByBeyond(ctx, key);
+  });
+
+  bot.callbackQuery(/^admin_res_view_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const resourceId = parseInt(ctx.match[1], 10);
+    await handleViewResource(ctx, resourceId);
+  });
+
+  bot.callbackQuery(/^admin_res_edit_title_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    ctx.session.editResourceId = parseInt(ctx.match[1], 10);
+    await ctx.conversation.enter('adminEditResourceTitleConversation');
+  });
+
+  bot.callbackQuery(/^admin_res_del_confirm_(\d+)$/, async (ctx) => {
+    const resourceId = parseInt(ctx.match[1], 10);
+    await handleDeleteResource(ctx, resourceId);
+  });
+
+  bot.callbackQuery(/^admin_res_del_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const resourceId = parseInt(ctx.match[1], 10);
+    await handleConfirmDeleteResource(ctx, resourceId);
+  });
+
+  // Unified Beyond Curriculum Management
+  bot.callbackQuery('admin_manage_beyond_unified', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleManageResourcesBeyondCategories(ctx);
+  });
+
+  // In-context Add Material to Course
+  bot.callbackQuery(/^admin_crs_add_res_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await ctx.conversation.enter('addResourceConversation');
+  });
+
+  // In-context Add Material to Topic
+  bot.callbackQuery(/^admin_byd_add_res_([a-z0-9_-]+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await ctx.conversation.enter('addResourceConversation');
+  });
+
+  // In-context Add Topic under Category
+  bot.callbackQuery(/^admin_byd_add_topic_([a-z0-9_-]+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await ctx.conversation.enter('adminAddTopicConversation');
+  });
+
+  // Admin Category Management
+  bot.callbackQuery('admin_manage_categories', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleManageCategories(ctx);
+  });
+
+  bot.callbackQuery('admin_cat_add', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await ctx.conversation.enter('adminAddCategoryConversation');
+  });
+
+  bot.callbackQuery(/^admin_cat_view_(.+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const key = ctx.match[1];
+    await handleViewCategory(ctx, key);
+  });
+
+  bot.callbackQuery(/^admin_cat_edit_(.+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    ctx.session.editCategoryKey = ctx.match[1];
+    await ctx.conversation.enter('adminEditCategoryLabelConversation');
+  });
+
+  bot.callbackQuery(/^admin_cat_del_confirm_(.+)$/, async (ctx) => {
+    const key = ctx.match[1];
+    await handleDeleteCategory(ctx, key);
+  });
+
+  bot.callbackQuery(/^admin_cat_del_(.+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const key = ctx.match[1];
+    await handleConfirmDeleteCategory(ctx, key);
+  });
+
+  bot.callbackQuery(/^admin_cat_toggle_(.+)$/, async (ctx) => {
+    const key = ctx.match[1];
+    await handleToggleCategoryActive(ctx, key);
+  });
+
+  // Admin Resource Type Management
+  bot.callbackQuery('admin_manage_types', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleManageResourceTypes(ctx);
+  });
+
+  bot.callbackQuery('admin_type_add', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await ctx.conversation.enter('adminAddResourceTypeConversation');
+  });
+
+  bot.callbackQuery(/^admin_type_view_(.+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const key = ctx.match[1];
+    await handleViewResourceType(ctx, key);
+  });
+
+  bot.callbackQuery(/^admin_type_edit_(.+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    ctx.session.editResourceTypeKey = ctx.match[1];
+    await ctx.conversation.enter('adminEditResourceTypeLabelConversation');
+  });
+
+  bot.callbackQuery(/^admin_type_del_confirm_(.+)$/, async (ctx) => {
+    const key = ctx.match[1];
+    await handleDeleteResourceType(ctx, key);
+  });
+
+  bot.callbackQuery(/^admin_type_del_(.+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const key = ctx.match[1];
+    await handleConfirmDeleteResourceType(ctx, key);
+  });
+
+  bot.callbackQuery(/^admin_type_toggle_(.+)$/, async (ctx) => {
+    const key = ctx.match[1];
+    await handleToggleResourceTypeActive(ctx, key);
+  });
+
+  bot.callbackQuery(['admin_edit_cancel', 'admin_add_cancel'], async (ctx) => {
+    await ctx.answerCallbackQuery({ text: 'Action cancelled.' });
+    try {
+      await ctx.editMessageText('❌ Operation cancelled.');
+    } catch (e) {
+      // ignore
+    }
+  });
+
   // Natural text search fallback for freeform queries (when not in a conversation)
   bot.on('message:text', async (ctx) => {
     const text = ctx.message.text.trim();
@@ -289,11 +638,13 @@ _Statistics for Development_`;
     } else {
       const dbUser = await getUserByTelegramId(ctx.from.id);
       const isAdmin = isUserAdmin(ctx.from.id, dbUser);
+      const { getBrandConfig } = require('../services/settingsService');
+      const brand = await getBrandConfig();
       await ctx.reply(
-        `👋 *Welcome to GASSBot!*\n━━━━━━━━━━━━━━━━━━\nSend a course code or topic to search (e.g. \`STAT 151\` or \`regression\`), or browse using the menu:`,
+        `👋 *Welcome to ${brand.name}!*\n━━━━━━━━━━━━━━━━━━\nSend a course code or topic to search (e.g. \`STAT 151\` or \`regression\`), or browse using the menu:`,
         {
           parse_mode: 'Markdown',
-          reply_markup: getMainMenuKeyboard(isAdmin)
+          reply_markup: getMainMenuKeyboard(isAdmin, brand.links?.playStore)
         }
       );
     }

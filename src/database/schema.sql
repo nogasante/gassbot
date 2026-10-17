@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS resources (
     course_id INT REFERENCES courses(id) ON DELETE SET NULL,
     topic_id INT REFERENCES topics(id) ON DELETE SET NULL,
     beyond_category VARCHAR(100),
+    beyond_sub_topic VARCHAR(100),
     file_url TEXT NOT NULL,
     telegram_file_id TEXT,
     file_format VARCHAR(50) DEFAULT 'pdf',
@@ -119,3 +120,61 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     details JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- 9. Beyond Curriculum Categories Table (Dynamically managed via PostgreSQL)
+CREATE TABLE IF NOT EXISTS beyond_categories (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(50) UNIQUE NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    description TEXT,
+    icon VARCHAR(50),
+    order_index INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_beyond_categories_key ON beyond_categories (key);
+CREATE INDEX IF NOT EXISTS idx_beyond_categories_order ON beyond_categories (order_index);
+
+-- 9B. Beyond Curriculum Sub-Topics Table (Sub-topics under core pillars)
+CREATE TABLE IF NOT EXISTS beyond_sub_topics (
+    id SERIAL PRIMARY KEY,
+    pillar_key VARCHAR(50) NOT NULL REFERENCES beyond_categories(key) ON DELETE CASCADE ON UPDATE CASCADE,
+    key VARCHAR(50) UNIQUE NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    description TEXT,
+    icon VARCHAR(50),
+    order_index INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_beyond_sub_topics_pillar ON beyond_sub_topics (pillar_key);
+CREATE INDEX IF NOT EXISTS idx_beyond_sub_topics_key ON beyond_sub_topics (key);
+CREATE INDEX IF NOT EXISTS idx_beyond_sub_topics_order ON beyond_sub_topics (order_index);
+
+-- Column safety migrations
+ALTER TABLE resources ADD COLUMN IF NOT EXISTS beyond_sub_topic VARCHAR(100);
+
+-- 10. Resource Types Table (Dynamically managed via PostgreSQL)
+CREATE TABLE IF NOT EXISTS resource_types (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(50) UNIQUE NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    icon VARCHAR(50),
+    order_index INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_resource_types_key ON resource_types (key);
+CREATE INDEX IF NOT EXISTS idx_resource_types_order ON resource_types (order_index);
+
+-- 11. Application Settings Table (Dynamic system constants, brand, and links)
+CREATE TABLE IF NOT EXISTS app_settings (
+    key VARCHAR(100) PRIMARY KEY,
+    value TEXT NOT NULL,
+    description TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+

@@ -8,6 +8,8 @@
     "dev": "node src/index.js",
     "migrate": "node src/database/migrate.js",
     "seed": "node src/database/seed.js",
+    "build": "echo 'Static webapp ready'",
+    "deploy:webapp": "vercel --prod",
     "test": "mocha tests/**/*.test.js --timeout 10000 --exit"
   },
   "keywords": [],

@@ -2,38 +2,41 @@ const { config } = require('../../config');
 const { InlineKeyboard } = require('grammy');
 
 async function handleHelp(ctx) {
+  const { getBrandConfig } = require('../../services/settingsService');
+  const brand = await getBrandConfig();
+
+  const githubHost = brand.links.github ? brand.links.github.replace(/^https?:\/\//, '') : 'github.com';
+
   const text = 
-`ℹ️ *About GASS-KNUST & Help Guide*
+`ℹ️ *About ${brand.name}*
 ━━━━━━━━━━━━━━━━━━
-*Ghana Association of Statistics Students (GASS)*
-*Kwame Nkrumah University of Science and Technology (KNUST)*
+*${brand.fullName}*
 🏛️ _Department of Statistics and Actuarial Science_
-📢 *Official Slogan:* _"${config.brand.slogan}"_
+📢 *Official Slogan:* _"${brand.slogan}"_
 
-📌 *Platform Overview:*
-GASSBot is the official digital academic platform built to empower Statistics and Actuarial Science students with direct access to accredited academic materials, past exam questions, software tutorials, and career opportunities.
+📌 *Overview:*
+${brand.name}Bot provides students with access to academic materials, past questions, and departmental resources.
 
-💡 *Available Commands:*
-• \`/start\` - Open Main Menu & Register profile
-• \`/courses\` - Browse Courses by Level (100–400)
+💡 *Commands:*
+• \`/start\` - Open Main Menu
+• \`/courses\` - Browse Courses by Level
 • \`/beyond\` - Statistical Software & Career Guides
-• \`/search <keyword>\` - Instant resource search
-• \`/request\` - Submit resource requests to executives
-• \`/notifications\` - Manage alerts & year level
-• \`/app\` - Access the Web App & PWA installation
+• \`/search <keyword>\` - Search resources
+• \`/request\` - Submit resource requests
+• \`/notifications\` - Manage alert preferences
+• \`/app\` - Get Student Android App
 • \`/help\` - Show this help information
-• \`/admin\` - Executive moderation panel (Admin only)
+• \`/admin\` - Executive moderation panel
 
-🤝 *Need Support or Want to Contribute?*
-Reach out to the GASS Academic & Tech Committee:
-• Support: ${config.brand.links.supportContact}
-• Web: [gass-knust.vercel.app](${config.brand.links.website})
-• GitHub: [github.com/gass-knust](${config.brand.links.github})
+🤝 *Contact & Support:*
+• Contact: ${brand.links.supportContact}
+• GitHub: [${githubHost}](${brand.links.github})
 
-_Statistics for Development_`;
+_${brand.slogan}_`;
 
   const keyboard = new InlineKeyboard()
-    .url('🌐 Visit Website', config.brand.links.website)
+    .url('📲 Get App', brand.links.playStore)
+    .row()
     .text('🏠 Main Menu', 'menu_main');
 
   if (ctx.callbackQuery) {

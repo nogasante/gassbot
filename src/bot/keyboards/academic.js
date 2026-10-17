@@ -1,16 +1,20 @@
 const { InlineKeyboard } = require('grammy');
 
-function getLevelsKeyboard() {
-  return new InlineKeyboard()
-    .text('Level 100 (First Year)', 'acad_lvl_100')
-    .row()
-    .text('Level 200 (Second Year)', 'acad_lvl_200')
-    .row()
-    .text('Level 300 (Third Year)', 'acad_lvl_300')
-    .row()
-    .text('Level 400 (Final Year)', 'acad_lvl_400')
-    .row()
-    .text('🔙 Back to Main Menu', 'menu_main');
+function getLevelsKeyboard(levels = [100, 200, 300, 400]) {
+  const keyboard = new InlineKeyboard();
+  const list = levels && levels.length > 0 ? levels : [100, 200, 300, 400];
+  const levelNames = {
+    100: 'Level 100 (First Year)',
+    200: 'Level 200 (Second Year)',
+    300: 'Level 300 (Third Year)',
+    400: 'Level 400 (Final Year)'
+  };
+  list.forEach(lvl => {
+    const label = levelNames[lvl] || `Level ${lvl}`;
+    keyboard.text(label, `acad_lvl_${lvl}`).row();
+  });
+  keyboard.text('🔙 Back to Main Menu', 'menu_main');
+  return keyboard;
 }
 
 function getSemestersKeyboard(level) {
@@ -33,18 +37,35 @@ function getCoursesKeyboard(courses, level, semester) {
   return keyboard;
 }
 
-function getCourseActionKeyboard(courseId, level, semester) {
-  return new InlineKeyboard()
+function getCourseActionKeyboard(courseId, level, semester, resourceTypes = null) {
+  const keyboard = new InlineKeyboard()
     .text('📂 View All Resources', `res_list_${courseId}`)
-    .row()
-    .text('📝 Past Questions', `res_type_${courseId}_past_question`)
-    .text('📊 Lecture Slides', `res_type_${courseId}_lecture_slide`)
-    .row()
-    .text('📑 Course Outline', `res_type_${courseId}_syllabus`)
-    .text('💡 Lab Notes', `res_type_${courseId}_note`)
-    .row()
+    .row();
+
+  const types = resourceTypes && resourceTypes.length > 0 ? resourceTypes : [
+    { key: 'past_question', label: '📝 Past Questions' },
+    { key: 'lecture_slide', label: '📊 Lecture Slides' },
+    { key: 'syllabus', label: '📑 Course Outline' },
+    { key: 'note', label: '💡 Lab Notes' }
+  ];
+
+  for (let i = 0; i < types.length; i += 2) {
+    const t1 = types[i];
+    const t2 = types[i + 1];
+    if (t2) {
+      keyboard.text(t1.label, `res_type_${courseId}_${t1.key}`)
+        .text(t2.label, `res_type_${courseId}_${t2.key}`)
+        .row();
+    } else {
+      keyboard.text(t1.label, `res_type_${courseId}_${t1.key}`).row();
+    }
+  }
+
+  keyboard
     .text('🔙 Back to Courses', `acad_sem_${level}_${semester}`)
     .text('🏠 Main Menu', 'menu_main');
+
+  return keyboard;
 }
 
 module.exports = {

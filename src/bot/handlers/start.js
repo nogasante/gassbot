@@ -15,13 +15,16 @@ async function handleStart(ctx) {
     role
   });
 
-  const welcomeMessage = 
-`🇬🇭 *Welcome to GASSBot!*
-━━━━━━━━━━━━━━━━━━
-*Ghana Association of Statistics Students (KNUST)*
-_"${config.brand.slogan}"_
+  const { getBrandConfig } = require('../../services/settingsService');
+  const brand = await getBrandConfig();
 
-Hello *${user.first_name || 'Scholar'}*! Tap any menu item below or type a course code (like \`MATH 171\` or \`STAT 266\`) to instantly find and get resources.`;
+  const welcomeMessage = 
+`🇬🇭 *Welcome to ${brand.name}!*
+━━━━━━━━━━━━━━━━━━
+*${brand.fullName}*
+_"${brand.slogan}"_
+
+Hello *${user.first_name || 'Student'}*! Tap an option below to browse academic courses, explore software and career materials, or search for resources.`;
 
   await ctx.reply(welcomeMessage, {
     parse_mode: 'Markdown',

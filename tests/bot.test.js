@@ -24,9 +24,9 @@ describe('GASS Telegram Bot Components', () => {
       const adminBtn = flattenedButtons.find(b => b.text.includes('Admin'));
       expect(adminBtn).to.exist;
 
-      const webAppBtn = flattenedButtons.find(b => b.text.includes('Launch Web App'));
-      expect(webAppBtn).to.exist;
-      expect(webAppBtn.url).to.exist;
+      const gassaAppBtn = flattenedButtons.find(b => b.text.includes('Gassa App'));
+      expect(gassaAppBtn).to.exist;
+      expect(gassaAppBtn.url).to.exist;
     });
 
     it('should generate academic levels and semester keyboards', () => {
@@ -44,10 +44,11 @@ describe('GASS Telegram Bot Components', () => {
     it('should generate Beyond Curriculum category buttons', () => {
       const beyondKb = getBeyondCategoriesKeyboard();
       const buttons = beyondKb.inline_keyboard.flat();
-      expect(buttons.some(b => b.callback_data === 'beyond_cat_r')).to.be.true;
-      expect(buttons.some(b => b.callback_data === 'beyond_cat_python')).to.be.true;
-      expect(buttons.some(b => b.callback_data === 'beyond_cat_sql')).to.be.true;
-      expect(beyondCategories.length).to.be.at.least(10);
+      expect(buttons.some(b => b.callback_data === 'beyond_pillar_programming_tools')).to.be.true;
+      expect(buttons.some(b => b.callback_data === 'beyond_pillar_data_science_ml')).to.be.true;
+      expect(buttons.some(b => b.callback_data === 'beyond_pillar_careers_opportunities')).to.be.true;
+      expect(buttons.some(b => b.callback_data === 'beyond_pillar_research_thesis')).to.be.true;
+      expect(beyondCategories.length).to.equal(4);
     });
 
     it('should generate Admin moderation and action keyboards with navigation', () => {
@@ -58,8 +59,12 @@ describe('GASS Telegram Bot Components', () => {
 
       const modKb = getRequestModerationKeyboard(42, 0, 1);
       const modButtons = modKb.inline_keyboard.flat();
-      expect(modButtons.some(b => b.callback_data === 'admin_req_approve_42')).to.be.true;
-      expect(modButtons.some(b => b.callback_data === 'admin_req_reject_42')).to.be.true;
+      const fulfillBtn = modButtons.find(b => b.callback_data === 'admin_req_approve_42');
+      const dismissBtn = modButtons.find(b => b.callback_data === 'admin_req_reject_42');
+      expect(fulfillBtn).to.exist;
+      expect(fulfillBtn.text).to.include('Upload & Fulfill');
+      expect(dismissBtn).to.exist;
+      expect(dismissBtn.text).to.include('Dismiss Request');
 
       const pagedKb = getRequestModerationKeyboard(42, 1, 3, 41, 43);
       const pagedButtons = pagedKb.inline_keyboard.flat();

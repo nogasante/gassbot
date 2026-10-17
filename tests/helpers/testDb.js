@@ -2,7 +2,7 @@ const { newDb } = require('pg-mem');
 const fs = require('fs');
 const path = require('path');
 const { setPool } = require('../../src/config/database');
-const { coursesData } = require('../../src/database/seed');
+const { coursesData, beyondCategoriesData, beyondSubTopicsData, resourceTypesData, appSettingsData } = require('../../src/database/seed');
 
 const testBeyondResources = [
   {
@@ -10,7 +10,8 @@ const testBeyondResources = [
     description: 'Tidyverse and R statistical workflow',
     resource_type: 'guide',
     category: 'beyond_curriculum',
-    beyond_category: 'r',
+    beyond_category: 'programming_tools',
+    beyond_sub_topic: 'r',
     file_url: 'https://r4ds.hadley.nz/',
     file_format: 'link',
     tags: ['r', 'statistics']
@@ -20,7 +21,8 @@ const testBeyondResources = [
     description: 'Pandas and scipy for data analysis',
     resource_type: 'tutorial',
     category: 'beyond_curriculum',
-    beyond_category: 'python',
+    beyond_category: 'programming_tools',
+    beyond_sub_topic: 'python',
     file_url: 'https://example.com/python-stats',
     file_format: 'link',
     tags: ['python', 'statistics']
@@ -78,9 +80,9 @@ async function seedTestDb(pool) {
 
   for (const r of testBeyondResources) {
     await pool.query(
-      `INSERT INTO resources (title, description, resource_type, category, beyond_category, file_url, file_format, tags)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
-      [r.title, r.description, r.resource_type, r.category, r.beyond_category, r.file_url, r.file_format, r.tags]
+      `INSERT INTO resources (title, description, resource_type, category, beyond_category, beyond_sub_topic, file_url, file_format, tags)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);`,
+      [r.title, r.description, r.resource_type, r.category, r.beyond_category, r.beyond_sub_topic, r.file_url, r.file_format, r.tags]
     );
   }
 
@@ -88,6 +90,40 @@ async function seedTestDb(pool) {
     `INSERT INTO announcements (title, content, priority, target_level, broadcasted_at)
      VALUES ('Welcome to GASS', 'Official academic platform launch', 'normal', NULL, NOW());`
   );
+
+  for (const cat of beyondCategoriesData) {
+    await pool.query(
+      `INSERT INTO beyond_categories (key, label, description, icon, order_index, is_active)
+       VALUES ($1, $2, $3, $4, $5, TRUE);`,
+      [cat.key, cat.label, cat.description, cat.icon, cat.orderIndex]
+    );
+  }
+
+  if (beyondSubTopicsData) {
+    for (const sub of beyondSubTopicsData) {
+      await pool.query(
+        `INSERT INTO beyond_sub_topics (pillar_key, key, label, description, icon, order_index, is_active)
+         VALUES ($1, $2, $3, $4, $5, $6, TRUE);`,
+        [sub.pillarKey, sub.key, sub.label, sub.description, sub.icon, sub.orderIndex]
+      );
+    }
+  }
+
+  for (const type of resourceTypesData) {
+    await pool.query(
+      `INSERT INTO resource_types (key, label, icon, order_index, is_active)
+       VALUES ($1, $2, $3, $4, TRUE);`,
+      [type.key, type.label, type.icon, type.orderIndex]
+    );
+  }
+
+  for (const s of appSettingsData) {
+    await pool.query(
+      `INSERT INTO app_settings (key, value, description)
+       VALUES ($1, $2, $3);`,
+      [s.key, s.value, s.description]
+    );
+  }
 }
 
 module.exports = {

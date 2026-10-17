@@ -82,11 +82,19 @@ describe('GASS REST API Endpoints', () => {
       expect(res.status).to.equal(200);
       expect(res.body.data).to.be.an('array');
       const keys = res.body.data.map(c => c.key);
+      expect(keys).to.include('programming_tools');
+      expect(keys).to.include('data_science_ml');
+      expect(keys).to.include('careers_opportunities');
+      expect(keys).to.include('research_thesis');
+    });
+
+    it('should list sub-topics under a core pillar', async () => {
+      const res = await request(app).get('/api/beyond-categories/programming_tools/sub-topics');
+      expect(res.status).to.equal(200);
+      expect(res.body.data).to.be.an('array');
+      const keys = res.body.data.map(s => s.key);
       expect(keys).to.include('r');
       expect(keys).to.include('python');
-      expect(keys).to.include('sql');
-      expect(keys).to.include('excel');
-      expect(keys).to.include('latex');
     });
   });
 

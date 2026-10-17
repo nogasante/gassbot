@@ -97,7 +97,7 @@ describe('GASS Services (Shared Business Logic)', () => {
       const rResources = await resourceService.getResourcesByBeyondCategory('r');
       expect(rResources).to.be.an('array');
       expect(rResources.length).to.be.at.least(1);
-      expect(rResources[0].beyond_category).to.equal('r');
+      expect(rResources[0].beyond_sub_topic || rResources[0].beyond_category).to.equal('r');
     });
 
     it('should search resources by keyword across titles and courses', async () => {

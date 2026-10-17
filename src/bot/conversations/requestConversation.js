@@ -16,11 +16,10 @@ async function requestResourceConversation(conversation, ctx) {
   );
 
   await ctx.reply(
-    `🔍 *Instant Resource Finder & Request*\n` +
+    `✍️ *Custom Resource Request*\n` +
     `━━━━━━━━━━━━━━━━━━\n` +
-    `What material do you need?\n\n` +
-    `Simply type the course or topic below (e.g. \`MATH 171\`, \`STAT 266 past questions\`, or \`Python\`):\n\n` +
-    `_(Or send /cancel to return)_`,
+    `Please type the exact topic, assignment question, or specific material you need:\n\n` +
+    `_(Send /cancel anytime to return)_`,
     { parse_mode: 'Markdown' }
   );
 
@@ -42,7 +41,7 @@ async function requestResourceConversation(conversation, ctx) {
     existing.forEach((r, idx) => {
       const typeLabel = (r.resource_type || 'material').toUpperCase().replace('_', ' ');
       text += `\n*${idx + 1}. ${escapeMarkdown(r.title)}*\n`;
-      text += `   🏷️ ${typeLabel} | 📥 Downloads: ${r.download_count}\n`;
+      text += `   🏷️ ${typeLabel} | ${r.telegram_file_id ? '📥 Downloads' : '👁️ Accesses'}: ${r.download_count}\n`;
 
       if (r.telegram_file_id) {
         keyboard.text(`📥 Send File #${idx + 1}`, `res_send_${r.id}`);
@@ -72,13 +71,16 @@ async function requestResourceConversation(conversation, ctx) {
     })
   );
 
+  const { getBrandConfig } = require('../../services/settingsService');
+  const brand = await conversation.external(() => getBrandConfig());
+
   await ctx.reply(
     `⏳ *Material Not Found Yet*\n` +
     `━━━━━━━━━━━━━━━━━━\n` +
     `We don't have files for *"${escapeMarkdown(queryText)}"* uploaded yet.\n\n` +
     `✅ *Request Auto-Logged (ID: #${created.id})*\n` +
-    `The GASS Academic Committee has been alerted. As soon as an executive uploads it, you will receive it right here in this chat!\n\n` +
-    `_Statistics for Development_`,
+    `The ${brand.name} Academic Committee has been alerted. As soon as an executive uploads it, you will receive it right here in this chat!\n\n` +
+    `_${brand.slogan}_`,
     {
       parse_mode: 'Markdown',
       reply_markup: new InlineKeyboard()
