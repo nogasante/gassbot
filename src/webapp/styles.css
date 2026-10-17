@@ -1,0 +1,234 @@
+@import '@telegram-apps/telegram-ui/dist/styles.css';
+
+:root {
+  --gass-teal: #0B536F;
+  --gass-red: #E00613;
+  --gass-blue: #4A90E2;
+  --gass-gold: #F59E0B;
+  
+  --tgui--link_color: #0B536F;
+  --tgui--button_color: #0B536F;
+  --tgui--button_text_color: #FFFFFF;
+  --tgui--accent_text_color: #0B536F;
+  --tgui--bg_color: #F8FAFC;
+  --tgui--section_bg_color: #FFFFFF;
+  --tgui--secondary_bg_color: #F1F5F9;
+  --tgui--text_color: #0F172A;
+  --tgui--subtitle_text_color: #475569;
+  --tgui--hint_color: #64748B;
+  --tgui--outline: rgba(15, 23, 42, 0.08);
+  --tgui--divider: rgba(15, 23, 42, 0.06);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--tgui--bg_color);
+  color: var(--tgui--text_color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.app-wrapper {
+  min-height: 100vh;
+  padding-bottom: 90px;
+  background-color: var(--tgui--bg_color);
+  box-sizing: border-box;
+}
+
+.portal-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.portal-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.portal-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(11, 83, 111, 0.12);
+  padding: 2px;
+}
+
+.portal-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.portal-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--gass-teal);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.portal-slogan {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gass-red);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 2px 0 0 0;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 4px 10px 4px 6px;
+}
+
+.user-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0B536F, #4A90E2);
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F172A;
+  max-width: 90px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 3D Icons inside Cells and Tabs */
+.cell-3d-icon {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.08));
+}
+
+.tab-3d-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tabbar-item-active .tab-3d-icon {
+  transform: scale(1.15);
+}
+
+/* Hero Section */
+.hero-card {
+  margin: 16px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0B536F 0%, #063142 100%);
+  color: #FFFFFF;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(11, 83, 111, 0.2);
+  padding: 20px;
+}
+
+.hero-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.hero-stat-card {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.hero-stat-num {
+  font-size: 20px;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1;
+}
+
+.hero-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  margin-top: 4px;
+  letter-spacing: 0.03em;
+}
+
+/* Pillar Cards Grid */
+.pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.pillar-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.pillar-card:active {
+  transform: scale(0.97);
+}
+
+.pillar-card-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.06));
+}
+
+.pillar-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.pillar-desc {
+  font-size: 12px;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.3;
+}
