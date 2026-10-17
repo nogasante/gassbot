@@ -1,13 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { List, Section, Cell, SegmentedControl, Spinner, Placeholder, Badge, Button, IconButton, Banner, Chip } from '@telegram-apps/telegram-ui';
-import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
-import { Icon28Devices } from '@telegram-apps/telegram-ui/dist/icons/28/devices';
+
+function IconBookmark({ active }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill={active ? "#E00613" : "none"} stroke={active ? "#E00613" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
+function IconExternalLink() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  );
+}
 
 const PILLARS = [
-  { key: 'ds_ml', label: 'AI & ML', desc: 'Machine Learning, Deep Learning, Statistical Computing' },
-  { key: 'prog_tools', label: 'SOFTWARE', desc: 'R, Python, SQL, LaTeX & Computational Analytics' },
-  { key: 'career_growth', label: 'CAREERS', desc: 'Internships, Scholarships, Career Pathways' },
-  { key: 'research_thesis', label: 'RESEARCH', desc: 'Biostatistics, Actuarial Science, Academic Writing' }
+  { key: 'ds_ml', label: 'AI & ML', title: 'Data Science & AI', desc: 'PyTorch, Machine Learning, Deep Neural Nets & Predictive Modeling', img: '/img/track-ds.png' },
+  { key: 'prog_tools', label: 'Software', title: 'Programming & Tools', desc: 'R Studio, Python, SQL, LaTeX & Computational Analytics', img: '/img/track-code.png' },
+  { key: 'career_growth', label: 'Careers', title: 'Careers & Industry', desc: 'Internships, Global Scholarships, CV Building & Portfolio Review', img: '/img/track-career.png' },
+  { key: 'research_thesis', label: 'Research', title: 'Research & Thesis', desc: 'Biostatistics, Actuarial Science, Methodology & Paper Writing', img: '/img/track-research.png' }
+];
+
+const FEATURED_TOOLS = [
+  { name: 'Python', role: 'Data Science & ML', badge: 'HOT', icon: '/img/track-ds.png', pillar: 'ds_ml' },
+  { name: 'R Studio', role: 'Statistical Computing', badge: 'CORE', icon: '/img/track-code.png', pillar: 'prog_tools' },
+  { name: 'SQL', role: 'Database & Big Data', badge: 'ESSENTIAL', icon: '/img/track-code.png', pillar: 'prog_tools' },
+  { name: 'LaTeX', role: 'Academic Publishing', badge: 'THESIS', icon: '/img/track-research.png', pillar: 'research_thesis' },
+  { name: 'Git & GitHub', role: 'Version Control', icon: '/img/track-code.png', pillar: 'prog_tools' },
+  { name: 'Scholarships', role: 'Global Grants & Study', badge: 'CAREER', icon: '/img/track-career.png', pillar: 'career_growth' },
 ];
 
 export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookmark }) {
@@ -46,103 +70,137 @@ export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookm
     }
   };
 
-  const currentPillarInfo = PILLARS.find(p => p.key === selectedPillar) || PILLARS[0];
+  const handlePillarChange = (key) => {
+    if (key === selectedPillar) return;
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.selectionChanged();
+    }
+    setSelectedPillar(key);
+  };
+
+  const currentPillar = PILLARS.find(p => p.key === selectedPillar) || PILLARS[0];
 
   return (
-    <List>
-      {/* Pillar Selection Segmented Control */}
-      <SegmentedControl>
-        {PILLARS.map(p => (
-          <SegmentedControl.Item
+    <div className="walt-page-content">
+      {/* Walt Earn-Style 3D Header Graphic */}
+      <div className="walt-earn-header">
+        <div className="walt-earn-graphic-wrap">
+          <img src={currentPillar.img} alt={currentPillar.title} className="walt-earn-graphic" />
+        </div>
+        <h2 className="walt-earn-title">{currentPillar.title}</h2>
+        <p className="walt-earn-desc">{currentPillar.desc}</p>
+      </div>
+
+      {/* Capsule Switcher (like Walt's Active / Ended) */}
+      <div className="walt-capsule-switcher walt-switcher-full" style={{ marginBottom: '18px' }}>
+        {PILLARS.map((p) => (
+          <button
             key={p.key}
-            selected={selectedPillar === p.key}
-            onClick={() => {
-              if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
-              setSelectedPillar(p.key);
-            }}
+            type="button"
+            className={`walt-switcher-item ${selectedPillar === p.key ? 'active' : ''}`}
+            onClick={() => handlePillarChange(p.key)}
           >
             {p.label}
-          </SegmentedControl.Item>
+          </button>
         ))}
-      </SegmentedControl>
+      </div>
 
-      {/* Official Telegram UI Banner for Current Pillar */}
-      <Banner
-        type="section"
-        callout="SPECIALIZATION PILLAR"
-        header={currentPillarInfo.label}
-        description={currentPillarInfo.desc}
-      />
+      {/* Walt 2-Column Grid of Tools (Image 2 style) */}
+      <div className="walt-section-header-row">
+        <span className="walt-section-title">Industry Toolchains</span>
+        <span className="walt-section-badge">6 Featured</span>
+      </div>
 
-      {/* Dynamic Subtopics Chips */}
+      <div className="walt-grid-2col" style={{ marginBottom: '22px' }}>
+        {FEATURED_TOOLS.map((tool) => (
+          <div
+            key={tool.name}
+            className={`walt-grid-card ${tool.pillar === selectedPillar ? 'highlighted' : ''}`}
+            onClick={() => handlePillarChange(tool.pillar)}
+          >
+            {tool.badge && <div className="walt-grid-badge">{tool.badge}</div>}
+            <div className="walt-grid-icon-wrap">
+              <img src={tool.icon} alt={tool.name} />
+            </div>
+            <div className="walt-grid-title">{tool.name}</div>
+            <div className="walt-grid-value">{tool.role}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Subtopics Pills */}
       {subTopics.length > 0 && (
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '0 16px 8px' }}>
-          {subTopics.map(sub => (
-            <Chip key={sub.id || sub.key} mode="elevated">
+        <div className="walt-chips-scroll no-scrollbar">
+          {subTopics.map((sub) => (
+            <span key={sub.id || sub.key} className="walt-subtopic-chip">
               {sub.title || sub.name}
-            </Chip>
+            </span>
           ))}
         </div>
       )}
 
-      {/* Resources List Section */}
+      {/* Grouped Materials Section */}
+      <div className="walt-section-header-row">
+        <span className="walt-section-title">
+          {currentPillar.label} Resources
+        </span>
+        <span className="walt-section-badge">{resources.length} Available</span>
+      </div>
+
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
-          <Spinner size="l" />
+        <div className="walt-loading-box">
+          <div className="walt-spinner" />
+          <span>Fetching resources...</span>
         </div>
       ) : resources.length > 0 ? (
-        <Section header={`${currentPillarInfo.label} Materials (${resources.length})`}>
-          {resources.map(res => {
-            const bookmarked = isBookmarked(res.id);
+        <section className="walt-card-group">
+          {resources.map((res, idx) => {
+            const saved = isBookmarked(res.id);
+            const tag = (res.type_name || res.resource_type || 'TOOL').toUpperCase();
             return (
-              <Cell
-                key={res.id}
-                before={<Chip mode="mono" className="resource-chip">{(res.type_name || res.resource_type || 'TOOL').toUpperCase()}</Chip>}
-                subhead={res.resource_type || 'Resource'}
-                subtitle={res.description || 'Verified GASS technical toolkit'}
-                after={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <IconButton
-                      size="s"
-                      mode={bookmarked ? 'bezeled' : 'gray'}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleBookmark(res);
-                      }}
+              <React.Fragment key={res.id}>
+                {idx > 0 && <div className="walt-row-divider" />}
+                <div className="walt-list-row">
+                  <div className="walt-type-tag-pill">{tag}</div>
+                  <div className="walt-row-content">
+                    <div className="walt-row-title">{res.title}</div>
+                    <div className="walt-row-subtitle">
+                      {res.description || 'Verified practical resource from the GASS board.'}
+                    </div>
+                  </div>
+                  <div className="walt-row-actions">
+                    <button
+                      type="button"
+                      className="walt-icon-btn"
+                      onClick={() => onToggleBookmark(res)}
+                      title={saved ? 'Remove bookmark' : 'Bookmark'}
                     >
-                      <Icon28Heart style={{ color: bookmarked ? '#E00613' : '#94A3B8' }} />
-                    </IconButton>
-
-                    <Button
-                      size="s"
-                      mode="filled"
-                      Component="a"
+                      <IconBookmark active={saved} />
+                    </button>
+                    <a
                       href={res.file_url}
                       target="_blank"
                       rel="noreferrer"
+                      className="walt-row-open-btn"
                     >
-                      Open
-                    </Button>
+                      <span>Open</span>
+                      <IconExternalLink />
+                    </a>
                   </div>
-                }
-              >
-                {res.title}
-              </Cell>
+                </div>
+              </React.Fragment>
             );
           })}
-        </Section>
+        </section>
       ) : (
-        <Placeholder
-          header="Curating Content"
-          description={`Materials for ${currentPillarInfo.label} are currently being curated by the academic committee.`}
-        >
-          <img 
-            src="/img/nav-skills.png" 
-            alt="Skills" 
-            style={{ width: '80px', height: '80px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
-          />
-        </Placeholder>
+        <div className="walt-empty-box">
+          <img src="/img/nav-skills.png" alt="No Resources" className="walt-empty-img" />
+          <div className="walt-empty-title">Materials Being Curated</div>
+          <div className="walt-empty-desc">
+            The GASS Academic & Software Board is reviewing materials for this specialization.
+          </div>
+        </div>
       )}
-    </List>
+    </div>
   );
 }

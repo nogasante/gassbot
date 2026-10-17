@@ -204,6 +204,7 @@ export function App() {
               onSelectLevel={handleSelectLevel}
               onSelectPillar={handleSelectPillar}
               onNavigateTab={handleTabChange}
+              onRequestOpen={() => setRequestModalOpen(true)}
             />
           )}
 

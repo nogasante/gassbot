@@ -1,192 +1,1226 @@
 @import '@telegram-apps/telegram-ui/dist/styles.css';
 
 /* ==========================================================================
-   GASS-KNUST Brand Identity System
-   Tailored for native Telegram clients (Web, Desktop, iOS, Android).
+   GASS-KNUST Digital Portal Design System
+   Inspired by Telegram Flagship Wallet (Walt) Native Architecture.
+   Zero fragile class hacks. 100% Native, Fluid & Theme-Aware.
    ========================================================================== */
 
 :root {
-  /* Official GASS-KNUST Brand Tokens */
+  /* GASS-KNUST Brand Tokens */
   --gass-teal: #0B536F;
   --gass-teal-light: #0E6B8F;
-  --gass-teal-subtle: rgba(11, 83, 111, 0.08);
+  --gass-teal-subtle: rgba(11, 83, 111, 0.12);
   --gass-red: #E00613;
-  --gass-red-subtle: rgba(224, 6, 19, 0.08);
+  --gass-red-subtle: rgba(224, 6, 19, 0.12);
   --gass-blue: #4A90E2;
   --gass-gold: #F59E0B;
 
-  /* Natural Fallbacks if client does not supply section colors (e.g. web/desktop) */
-  --tg-theme-secondary-bg-color: var(--tgui--secondary_bg_color, #F4F4F7);
-  --tg-theme-section-bg-color: var(--tgui--section_bg_color, #FFFFFF);
+  /* Natural Telegram Dark Fallbacks matching Walt screenshots */
+  --tgui--bg_color: #0e1621;
+  --tgui--secondary_bg_color: #101822;
+  --tgui--section_bg_color: #17212b;
+  --tgui--text_color: #FFFFFF;
+  --tgui--hint_color: #7f91a4;
+  --tgui--link_color: #2481CC;
+  --tgui--button_color: #2481CC;
+  --tgui--button_text_color: #FFFFFF;
 }
 
-/* Telegram Dark Mode Harmonization */
-.tgui-865b921add8ee075 {
-  --gass-teal-subtle: rgba(74, 144, 226, 0.15);
-  --tg-theme-secondary-bg-color: var(--tgui--secondary_bg_color, #17212b);
-  --tg-theme-section-bg-color: var(--tgui--section_bg_color, #232e3c);
+/* Light Theme support when user's Telegram client is set to Light mode */
+@media (prefers-color-scheme: light) {
+  :root {
+    --tgui--bg_color: #FFFFFF;
+    --tgui--secondary_bg_color: #F0F2F5;
+    --tgui--section_bg_color: #FFFFFF;
+    --tgui--text_color: #0F172A;
+    --tgui--hint_color: #64748B;
+    --tgui--link_color: #0B536F;
+    --tgui--button_color: #0B536F;
+    --tgui--button_text_color: #FFFFFF;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--tgui--secondary_bg_color, var(--tg-theme-secondary-bg-color, #F4F4F7));
-  color: var(--tgui--text_color, var(--tg-theme-text-color, inherit));
-  -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent;
+  background-color: var(--tgui--secondary_bg_color, #101822);
+  color: var(--tgui--text_color, #FFFFFF);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   user-select: none;
 }
 
-/* Page wrapper ensuring bottom tabbar does not clip content */
 .app-container {
   min-height: 100vh;
-  padding-bottom: 96px !important;
-  background-color: var(--tgui--secondary_bg_color, var(--tg-theme-secondary-bg-color, transparent));
-  box-sizing: border-box;
+  padding-bottom: 110px; /* Generous bottom clearance for the floating dock */
+  background-color: var(--tgui--secondary_bg_color, #101822);
 }
 
-/* Executive Portal Header - Zero Truncation */
-.gass-portal-header {
+.walt-page-content {
+  padding-top: 8px;
+  animation: waltFadeIn 0.2s ease-in;
+}
+
+@keyframes waltFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes waltSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* ==========================================================================
+   1. Executive Header (Walt Verified Topbar)
+   ========================================================================== */
+.walt-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  background: var(--tgui--section_bg_color, #232e3c);
-  border-bottom: 1px solid var(--tgui--outline, rgba(128, 128, 128, 0.12));
-  gap: 12px;
+  padding: 12px 16px;
+  background: var(--tgui--secondary_bg_color, #101822);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.header-brand-block {
+.walt-header-left {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
-  flex: 1;
 }
 
-.header-text-block {
+.walt-avatar-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--tgui--section_bg_color, #17212b);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.walt-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.walt-header-info {
   display: flex;
   flex-direction: column;
   min-width: 0;
   gap: 2px;
 }
 
-.header-title-row {
+.walt-header-title-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  gap: 6px;
+}
+
+.walt-header-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--tgui--text_color, #FFFFFF);
+  letter-spacing: -0.2px;
+}
+
+.walt-header-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--tgui--hint_color, #7f91a4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.walt-scholar-name {
+  font-weight: 600;
+  color: var(--tgui--text_color, #FFFFFF);
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.walt-bullet {
+  opacity: 0.5;
+}
+
+.walt-slogan {
+  font-weight: 500;
+  color: var(--gass-blue);
+}
+
+.walt-header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(36, 129, 204, 0.16);
+  color: #2481CC;
+  border: none;
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.walt-header-action-btn:active {
+  transform: scale(0.94);
+  background: rgba(36, 129, 204, 0.28);
+}
+
+/* ==========================================================================
+   2. Hero Arc / Status Card (Walt Image 1)
+   ========================================================================== */
+.walt-hero-card {
+  background: var(--tgui--section_bg_color, #17212b);
+  border-radius: 20px;
+  padding: 20px 18px;
+  margin: 4px 16px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+}
+
+.walt-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(74, 144, 226, 0.15);
+  color: #5B9BE6;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.walt-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5B9BE6;
+  box-shadow: 0 0 8px #5B9BE6;
+}
+
+.walt-hero-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--tgui--text_color, #FFFFFF);
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.walt-hero-desc {
+  font-size: 13px;
+  color: var(--tgui--hint_color, #8e9fae);
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+
+.walt-hero-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.walt-btn-primary {
+  background: #2481CC;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 22px;
+  padding: 10px 22px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  outline: none;
+}
+
+.walt-btn-primary:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+.walt-hero-stats-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tgui--hint_color, #8e9fae);
+}
+
+/* ==========================================================================
+   3. Walt's 4 Circular Quick Action Buttons (Image 1)
+   ========================================================================== */
+.walt-quick-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 2px 16px 18px;
   gap: 8px;
 }
 
-.header-org-name {
-  font-weight: 800;
-  font-size: 16px;
-  line-height: 1.2;
-  color: var(--tgui--text_color, inherit);
+.walt-action-btn-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  flex: 1;
 }
 
-.header-scholar-pill {
-  font-size: 11px;
+.walt-circle-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--tgui--section_bg_color, #17212b);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s ease;
+}
+
+.walt-action-btn-item:active .walt-circle-btn {
+  transform: scale(0.91);
+}
+
+.walt-btn-courses { color: #4A90E2; }
+.walt-btn-skills { color: #10B981; }
+.walt-btn-search { color: #F59E0B; }
+.walt-btn-request { color: #E00613; }
+
+.walt-action-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tgui--text_color, #FFFFFF);
+  text-align: center;
+}
+
+/* ==========================================================================
+   4. Walt's Cyan Announcement Banner (Image 1)
+   ========================================================================== */
+.walt-cyan-banner {
+  position: relative;
+  margin: 0 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+  color: #FFFFFF;
+  padding: 18px 18px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(13, 71, 161, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.15s ease;
+}
+
+.walt-cyan-banner:active {
+  transform: scale(0.98);
+}
+
+.walt-banner-text-block {
+  flex: 1;
+  min-width: 0;
+  z-index: 2;
+}
+
+.walt-banner-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 4px;
+}
+
+.walt-banner-heading {
+  font-size: 17px;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 3px;
+  letter-spacing: -0.2px;
+}
+
+.walt-banner-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.88);
+  margin-bottom: 8px;
+  max-width: 200px;
+  line-height: 1.35;
+}
+
+.walt-banner-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+.walt-banner-graphic {
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  width: 105px;
+  height: 105px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.walt-banner-graphic img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35));
+}
+
+/* ==========================================================================
+   5. Walt Grouped Card Lists (Crypto List in Image 1)
+   ========================================================================== */
+.walt-section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px 8px;
+}
+
+.walt-section-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--tgui--text_color, #FFFFFF);
+  letter-spacing: -0.2px;
+}
+
+.walt-section-badge {
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--tgui--hint_color, #7f91a4);
-  max-width: 120px;
+}
+
+.walt-section-link {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--tgui--link_color, #2481CC);
+  cursor: pointer;
+}
+
+.walt-card-group {
+  background: var(--tgui--section_bg_color, #17212b);
+  border-radius: 18px;
+  margin: 0 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.walt-list-row {
+  display: flex;
+  align-items: center;
+  padding: 13px 16px;
+  gap: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.walt-list-row:active {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.walt-row-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-left: 68px;
+}
+
+.walt-row-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.walt-lvl-100 { background: rgba(74, 144, 226, 0.15); color: #4A90E2; }
+.walt-lvl-200 { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+.walt-lvl-300 { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+.walt-lvl-400 { background: rgba(224, 6, 19, 0.15); color: #E00613; }
+
+.walt-row-badge-pill {
+  width: 46px;
+  height: 32px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 12px;
+  background: rgba(74, 144, 226, 0.12);
+  color: #4A90E2;
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.walt-type-tag-pill {
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  background: rgba(74, 144, 226, 0.14);
+  color: #5B9BE6;
+  border: 1px solid rgba(74, 144, 226, 0.25);
+  flex-shrink: 0;
+}
+
+.walt-row-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.walt-row-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--tgui--text_color, #FFFFFF);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.walt-course-code {
+  font-weight: 700;
+  color: #5B9BE6;
+}
+
+.walt-course-name {
+  color: var(--tgui--text_color, #FFFFFF);
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.header-slogan {
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--gass-teal);
+.walt-row-subtitle {
+  font-size: 12px;
+  color: var(--tgui--hint_color, #7f91a4);
   white-space: nowrap;
-}
-
-.tgui-865b921add8ee075 .header-slogan {
-  color: #5B9BE6;
-}
-
-/* Crisp Section Cards - Native Telegram Outlines */
-.tgui-db9be63c4fecf79b,
-.tgui-4b78bed6e925088e,
-.tgui-dbf261f4b3046bb3,
-.tgui-c3d21871b48e0ba3 {
-  border: 1px solid var(--tgui--outline, rgba(128, 128, 128, 0.12));
-  border-radius: 14px;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Hero Banner Brand Callout */
-.tgui-a04b768cea14d789 span:first-child {
-  color: var(--gass-teal);
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
-
-.tgui-865b921add8ee075 .tgui-a04b768cea14d789 span:first-child {
-  color: var(--gass-blue);
-}
-
-/* Departmental Announcement Tag Accent */
-.announcement-banner .tgui-a04b768cea14d789 span:first-child {
-  color: var(--gass-red);
-}
-
-/* Resource Tag Chip with Brand Tint */
-.resource-chip {
-  padding: 2px 8px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  border-radius: 6px;
-  background: var(--gass-teal-subtle);
-  color: var(--gass-teal);
-  border: 1px solid rgba(11, 83, 111, 0.18);
-}
-
-.tgui-865b921add8ee075 .resource-chip {
-  background: rgba(74, 144, 226, 0.15);
-  color: #5B9BE6;
-  border: 1px solid rgba(74, 144, 226, 0.3);
-}
-
-/* Placeholder Empty States - Framed & Styled */
-.tgui-e5c3a5b87f8b1f46 {
-  background: var(--tgui--section_bg_color, var(--tg-theme-section-bg-color, transparent));
-  border-radius: 16px;
-  border: 1px dashed var(--tgui--outline, rgba(128, 128, 128, 0.2));
-  margin: 16px;
-  padding: 32px 20px;
-}
-
-/* Form Dropdowns in Native Telegram Themes */
-select option {
-  background-color: var(--tgui--section_bg_color, var(--tg-theme-section-bg-color, #FFFFFF));
-  color: var(--tgui--text_color, var(--tg-theme-text-color, #000000));
-}
-
-/* Card Graphic Container */
-.card-graphic-wrapper {
-  padding: 10px 8px 4px;
+.walt-row-after {
+  color: var(--tgui--hint_color, #7f91a4);
   display: flex;
-  justify-content: center;
   align-items: center;
+  flex-shrink: 0;
 }
 
-.card-graphic-wrapper img {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
+.walt-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.tgui-dbf261f4b3046bb3:active .card-graphic-wrapper img {
+.walt-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--tgui--hint_color, #7f91a4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.walt-icon-btn:active {
   transform: scale(0.92);
 }
 
-/* Utility to eliminate horizontal scrollbars */
+.walt-row-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #2481CC;
+  color: #FFFFFF;
+  padding: 6px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.walt-row-open-btn:active {
+  opacity: 0.85;
+}
+
+/* ==========================================================================
+   6. Walt 2-Column Grid Cards (Image 2 - "Earn" Tab)
+   ========================================================================== */
+.walt-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 16px 18px;
+}
+
+.walt-grid-card {
+  position: relative;
+  background: var(--tgui--section_bg_color, #17212b);
+  border-radius: 16px;
+  padding: 16px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  overflow: hidden;
+}
+
+.walt-grid-card:active {
+  transform: scale(0.97);
+}
+
+.walt-grid-card.highlighted {
+  border-color: #2481CC;
+  background: rgba(36, 129, 204, 0.12);
+}
+
+.walt-grid-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #2481CC;
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+
+.walt-badge-cyan {
+  background: #00ACC1;
+}
+
+.walt-grid-icon-wrap {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.walt-grid-icon-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+}
+
+.walt-grid-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--tgui--text_color, #FFFFFF);
+  margin-bottom: 3px;
+}
+
+.walt-grid-value {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--tgui--hint_color, #7f91a4);
+}
+
+/* ==========================================================================
+   7. Walt Capsule Switchers (Image 2)
+   ========================================================================== */
+.walt-filter-row {
+  display: flex;
+  gap: 8px;
+  margin: 0 16px 16px;
+}
+
+.walt-capsule-switcher {
+  display: flex;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px;
+  border-radius: 20px;
+  gap: 2px;
+}
+
+.walt-switcher-level { flex: 3; }
+.walt-switcher-sem { flex: 2; }
+.walt-switcher-full { width: calc(100% - 32px); margin: 0 16px 16px; }
+
+.walt-switcher-item {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--tgui--hint_color, #7f91a4);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 7px 8px;
+  border-radius: 17px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: center;
+  white-space: nowrap;
+  outline: none;
+}
+
+.walt-switcher-item.active {
+  background: var(--tgui--section_bg_color, #17212b);
+  color: var(--tgui--text_color, #FFFFFF);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================================
+   8. Earn / Skills Header (Walt Image 2)
+   ========================================================================== */
+.walt-earn-header {
+  text-align: center;
+  padding: 12px 20px 18px;
+}
+
+.walt-earn-graphic-wrap {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.walt-earn-graphic {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.3));
+}
+
+.walt-earn-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--tgui--text_color, #FFFFFF);
+  margin-bottom: 4px;
+}
+
+.walt-earn-desc {
+  font-size: 13px;
+  color: var(--tgui--hint_color, #7f91a4);
+  line-height: 1.4;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.walt-chips-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 16px 16px;
+}
+
+.walt-subtopic-chip {
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tgui--hint_color, #7f91a4);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   9. Search Tab & 4-Column Grid (Walt Image 3)
+   ========================================================================== */
+.walt-search-container {
+  padding: 0 16px 10px;
+}
+
+.walt-search-bar {
+  display: flex;
+  align-items: center;
+  background: var(--tgui--section_bg_color, #17212b);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 10px 14px;
+  gap: 10px;
+}
+
+.walt-search-icon {
+  color: var(--tgui--hint_color, #7f91a4);
+  display: flex;
+  align-items: center;
+}
+
+.walt-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--tgui--text_color, #FFFFFF);
+  font-size: 14px;
+}
+
+.walt-search-input::placeholder {
+  color: var(--tgui--hint_color, #7f91a4);
+}
+
+.walt-search-clear {
+  background: transparent;
+  border: none;
+  color: var(--tgui--hint_color, #7f91a4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.walt-grid-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 0 16px 18px;
+}
+
+.walt-4col-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  background: var(--tgui--section_bg_color, #17212b);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  padding: 12px 6px;
+  transition: transform 0.15s ease;
+}
+
+.walt-4col-item:active {
+  transform: scale(0.94);
+}
+
+.walt-4col-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(74, 144, 226, 0.14);
+  color: #5B9BE6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 11px;
+}
+
+.walt-4col-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--tgui--text_color, #FFFFFF);
+  text-align: center;
+}
+
+.walt-4col-sub {
+  font-size: 10px;
+  color: var(--tgui--hint_color, #7f91a4);
+  text-align: center;
+}
+
+.walt-category-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 18px;
+}
+
+.walt-cat-pill {
+  border: none;
+  background: var(--tgui--section_bg_color, #17212b);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--tgui--text_color, #FFFFFF);
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   10. Saved Hero (Walt Image 4)
+   ========================================================================== */
+.walt-saved-hero {
+  background: linear-gradient(135deg, #0B536F 0%, #1565C0 100%);
+  margin: 4px 16px 18px;
+  border-radius: 20px;
+  padding: 22px 18px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(11, 83, 111, 0.3);
+}
+
+.walt-saved-hero-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.walt-saved-hero-stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.walt-saved-count {
+  font-size: 32px;
+  font-weight: 900;
+  color: #FFFFFF;
+}
+
+.walt-saved-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.walt-saved-hero-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ==========================================================================
+   11. Walt Bottom Sheet Modal (Image 5)
+   ========================================================================== */
+.walt-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: waltFadeIn 0.2s ease;
+}
+
+.walt-modal-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  background: var(--tgui--section_bg_color, #17212b);
+  border-radius: 26px 26px 0 0;
+  padding: 24px 20px 36px;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.45);
+  max-height: 88vh;
+  overflow-y: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  animation: waltSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.walt-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: var(--tgui--hint_color, #7f91a4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.walt-modal-close:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.walt-modal-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.walt-modal-icon-wrap {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.walt-modal-icon-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35));
+}
+
+.walt-modal-course-badge {
+  display: inline-block;
+  background: rgba(74, 144, 226, 0.15);
+  color: #5B9BE6;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+
+.walt-modal-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--tgui--text_color, #FFFFFF);
+  margin-bottom: 4px;
+}
+
+.walt-modal-desc {
+  font-size: 12.5px;
+  color: var(--tgui--hint_color, #7f91a4);
+}
+
+.walt-btn-full {
+  width: 100%;
+  padding: 13px;
+  font-size: 14.5px;
+  border-radius: 24px;
+}
+
+/* Form inputs for Request Modal */
+.walt-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.walt-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.walt-form-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tgui--hint_color, #7f91a4);
+}
+
+.walt-form-select,
+.walt-form-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 13.5px;
+  color: var(--tgui--text_color, #FFFFFF);
+  outline: none;
+}
+
+.walt-form-select option {
+  background: var(--tgui--section_bg_color, #17212b);
+  color: #FFFFFF;
+}
+
+.walt-error-pill {
+  background: rgba(224, 6, 19, 0.15);
+  color: #FF5252;
+  border: 1px solid rgba(224, 6, 19, 0.3);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* ==========================================================================
+   12. The Signature Floating Capsule Dock Navbar (Walt)
+   ========================================================================== */
+.walt-dock-wrapper {
+  position: fixed;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.walt-dock-capsule {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: calc(100% - 24px);
+  max-width: 410px;
+  background: rgba(18, 26, 36, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 36px;
+  padding: 5px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.walt-dock-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  padding: 7px 10px;
+  border-radius: 22px;
+  color: #8e9fae;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex: 1;
+  outline: none;
+}
+
+.walt-dock-tab:active {
+  transform: scale(0.92);
+}
+
+.walt-dock-tab.active {
+  background: rgba(36, 129, 204, 0.26);
+  color: #FFFFFF;
+}
+
+.walt-dock-tab.active .walt-dock-icon {
+  color: #4A90E2;
+}
+
+.walt-dock-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.walt-dock-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.1px;
+}
+
+.walt-dock-handle {
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(142, 159, 174, 0.6);
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   13. Loading and Empty States
+   ========================================================================== */
+.walt-loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  gap: 12px;
+  color: var(--tgui--hint_color, #7f91a4);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.walt-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #2481CC;
+  border-radius: 50%;
+  animation: waltSpin 0.7s linear infinite;
+}
+
+@keyframes waltSpin {
+  to { transform: rotate(360deg); }
+}
+
+.walt-empty-box {
+  background: var(--tgui--section_bg_color, #17212b);
+  border-radius: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  margin: 16px;
+  padding: 36px 20px;
+  text-align: center;
+}
+
+.walt-empty-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin: 0 auto 12px;
+  display: block;
+}
+
+.walt-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--tgui--text_color, #FFFFFF);
+  margin-bottom: 4px;
+}
+
+.walt-empty-desc {
+  font-size: 12.5px;
+  color: var(--tgui--hint_color, #7f91a4);
+  line-height: 1.45;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* Utility to eliminate scrollbars */
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -194,82 +1228,4 @@ select option {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;
-}
-
-/* Level Badges for Curriculum */
-.level-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 46px;
-  height: 32px;
-  border-radius: 8px;
-  font-weight: 800;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-  background: var(--tgui--tertiary_bg_color, rgba(128, 128, 128, 0.12));
-  color: var(--tgui--link_color, #2990ff);
-  border: 1px solid var(--tgui--outline, rgba(128, 128, 128, 0.15));
-}
-
-/* Course Typography in Cells */
-.tgui-46dd90b57ffed25f {
-  color: var(--tgui--link_color, var(--gass-teal)) !important;
-  font-weight: 700 !important;
-  font-size: 13px !important;
-  letter-spacing: 0.02em !important;
-}
-
-.tgui-1c6d7865a76a19bc {
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  color: var(--tgui--text_color, inherit) !important;
-  line-height: 1.3 !important;
-}
-
-.tgui-d528ef65a8b76273 {
-  color: var(--tgui--hint_color, #7f91a4) !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-}
-
-/* Eliminate focus outlines across buttons and tabs */
-button,
-button:focus,
-button:focus-visible,
-[role="tab"],
-[role="tab"]:focus,
-[role="tab"]:focus-visible,
-.tgui-bbfb272d22eb23e8:focus,
-.tgui-bbfb272d22eb23e8:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* 100% Opaque Bottom Tabbar - No bleed-through */
-.tgui-53cb2ebed0c3b08f {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  background: var(--tgui--section_bg_color, #232e3c) !important;
-  border-top: 1px solid var(--tgui--outline, rgba(128, 128, 128, 0.12)) !important;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.25) !important;
-  z-index: 999 !important;
-  padding: 0 4px !important;
-}
-
-/* Compact padding so "Courses" and "Search" never truncate to "Cou..." */
-.tgui-64cd0db020a9bacf {
-  padding: 6px 4px 8px !important;
-}
-
-.tgui-aeab497081949a15 {
-  font-size: 11px !important;
-  line-height: 1.2 !important;
-  letter-spacing: -0.2px !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
-  white-space: nowrap !important;
 }

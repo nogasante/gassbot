@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { List, Section, Cell, SegmentedControl, Spinner, Placeholder } from '@telegram-apps/telegram-ui';
-import { Icon24ChevronRight } from '@telegram-apps/telegram-ui/dist/icons/24/chevron_right';
+
+function IconChevronRight() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  );
+}
 
 export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
   const [level, setLevel] = useState(initialLevel);
@@ -30,111 +36,115 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
     }
   };
 
+  const handleLevelChange = (lvl) => {
+    if (lvl === level) return;
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.selectionChanged();
+    }
+    setLevel(lvl);
+  };
+
+  const handleSemesterChange = (sem) => {
+    if (sem === semester) return;
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.selectionChanged();
+    }
+    setSemester(sem);
+  };
+
+  const handleCourseClick = (course) => {
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
+    onSelectCourse(course);
+  };
+
   return (
-    <List>
-      {/* Sleek Dual Switcher: Level & Semester in One Compact Row */}
-      <div style={{ display: 'flex', gap: '8px', padding: '4px 16px 12px' }}>
-        <div style={{ flex: 3 }}>
-          <SegmentedControl>
-            <SegmentedControl.Item 
-              selected={level === 100} 
-              onClick={() => {
-                if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
-                setLevel(100);
-              }}
+    <div className="walt-page-content">
+      {/* Walt-style Capsule Switchers */}
+      <div className="walt-filter-row">
+        {/* Level Switcher */}
+        <div className="walt-capsule-switcher walt-switcher-level">
+          {[100, 200, 300, 400].map((lvl) => (
+            <button
+              key={lvl}
+              type="button"
+              className={`walt-switcher-item ${level === lvl ? 'active' : ''}`}
+              onClick={() => handleLevelChange(lvl)}
             >
-              L100
-            </SegmentedControl.Item>
-            <SegmentedControl.Item 
-              selected={level === 200} 
-              onClick={() => {
-                if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
-                setLevel(200);
-              }}
-            >
-              L200
-            </SegmentedControl.Item>
-            <SegmentedControl.Item 
-              selected={level === 300} 
-              onClick={() => {
-                if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
-                setLevel(300);
-              }}
-            >
-              L300
-            </SegmentedControl.Item>
-            <SegmentedControl.Item 
-              selected={level === 400} 
-              onClick={() => {
-                if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
-                setLevel(400);
-              }}
-            >
-              L400
-            </SegmentedControl.Item>
-          </SegmentedControl>
+              L{lvl}
+            </button>
+          ))}
         </div>
 
-        <div style={{ flex: 2 }}>
-          <SegmentedControl>
-            <SegmentedControl.Item 
-              selected={semester === 1} 
-              onClick={() => {
-                if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
-                setSemester(1);
-              }}
+        {/* Semester Switcher */}
+        <div className="walt-capsule-switcher walt-switcher-sem">
+          {[1, 2].map((sem) => (
+            <button
+              key={sem}
+              type="button"
+              className={`walt-switcher-item ${semester === sem ? 'active' : ''}`}
+              onClick={() => handleSemesterChange(sem)}
             >
-              Sem 1
-            </SegmentedControl.Item>
-            <SegmentedControl.Item 
-              selected={semester === 2} 
-              onClick={() => {
-                if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
-                setSemester(2);
-              }}
-            >
-              Sem 2
-            </SegmentedControl.Item>
-          </SegmentedControl>
+              Sem {sem}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Course List Section */}
+      {/* Grouped Section Header */}
+      <div className="walt-section-header-row">
+        <span className="walt-section-title">
+          Level {level} • Semester {semester}
+        </span>
+        <span className="walt-section-badge">{courses.length} Courses</span>
+      </div>
+
+      {/* Courses Grouped Card */}
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
-          <Spinner size="l" />
+        <div className="walt-loading-box">
+          <div className="walt-spinner" />
+          <span>Loading curriculum...</span>
         </div>
       ) : courses.length > 0 ? (
-        <Section header={`Level ${level} • Semester ${semester} Curriculum (${courses.length})`}>
-          {courses.map((course) => (
-            <Cell
-              key={course.id}
-              subhead={course.code}
-              subtitle={`${course.credits || 3} Credit Units • Core Syllabus`}
-              after={<Icon24ChevronRight />}
-              onClick={() => {
-                if (window.Telegram?.WebApp?.HapticFeedback) {
-                  window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-                }
-                onSelectCourse(course);
-              }}
-            >
-              {course.title}
-            </Cell>
-          ))}
-        </Section>
+        <section className="walt-card-group">
+          {courses.map((course, idx) => {
+            const acronym = course.code ? course.code.split(' ')[0] : 'STAT';
+            const credits = course.credits || 3;
+            return (
+              <React.Fragment key={course.id}>
+                {idx > 0 && <div className="walt-row-divider" />}
+                <div
+                  className="walt-list-row"
+                  onClick={() => handleCourseClick(course)}
+                >
+                  <div className="walt-row-badge-pill">{acronym}</div>
+                  <div className="walt-row-content">
+                    <div className="walt-row-title">
+                      <span className="walt-course-code">{course.code}</span>
+                      <span className="walt-course-name">{course.title}</span>
+                    </div>
+                    <div className="walt-row-subtitle">
+                      {credits} Credits • Core Curriculum Syllabus
+                    </div>
+                  </div>
+                  <div className="walt-row-after">
+                    <IconChevronRight />
+                  </div>
+                </div>
+              </React.Fragment>
+            );
+          })}
+        </section>
       ) : (
-        <Placeholder
-          header="No Courses Available"
-          description={`No curriculum records found for Level ${level} Semester ${semester}.`}
-        >
-          <img 
-            src="/img/nav-courses.png" 
-            alt="Curriculum" 
-            style={{ width: '80px', height: '80px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
-          />
-        </Placeholder>
+        <div className="walt-empty-box">
+          <img src="/img/nav-courses.png" alt="No Courses" className="walt-empty-img" />
+          <div className="walt-empty-title">No Courses Listed</div>
+          <div className="walt-empty-desc">
+            No courses are currently registered for Level {level} Semester {semester}.
+          </div>
+        </div>
       )}
-    </List>
+    </div>
   );
 }

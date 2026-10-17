@@ -1,20 +1,53 @@
 import React, { useState, useEffect } from 'react';
-import { List, Section, Cell, Input, Spinner, Placeholder, Chip, Button, IconButton } from '@telegram-apps/telegram-ui';
-import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
-import { Icon24Close } from '@telegram-apps/telegram-ui/dist/icons/24/close';
 
-function Icon24Search(props) {
+function IconSearch() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M10.5 3a7.5 7.5 0 104.68 13.37l4.72 4.73a1 1 0 001.42-1.42l-4.73-4.72A7.5 7.5 0 0010.5 3zm-5.5 7.5a5.5 5.5 0 1111 0 5.5 5.5 0 01-11 0z"
-        fill="currentColor"
-      />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
   );
 }
 
-export function SearchTab({ isBookmarked, onToggleBookmark }) {
+function IconClose() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+function IconBookmark({ active }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill={active ? "#E00613" : "none"} stroke={active ? "#E00613" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
+function IconExternalLink() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  );
+}
+
+const QUICK_SEARCH_CHIPS = [
+  { label: 'STAT 151', query: 'STAT 151', sub: 'Prob I' },
+  { label: 'MATH 153', query: 'MATH 153', sub: 'Algebra' },
+  { label: 'STAT 261', query: 'STAT 261', sub: 'Prob II' },
+  { label: 'MATH 251', query: 'MATH 251', sub: 'Calculus' },
+  { label: 'R Studio', query: 'R', sub: 'Computing' },
+  { label: 'Python', query: 'Python', sub: 'Data Science' },
+  { label: 'Past Exams', query: 'past question', sub: 'Archive' },
+  { label: 'Syllabus', query: 'syllabus', sub: 'Outlines' },
+];
+
+export function SearchTab({ isBookmarked, onToggleBookmark, onSelectCourse }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -50,94 +83,147 @@ export function SearchTab({ isBookmarked, onToggleBookmark }) {
     }
   };
 
+  const handleQuickChip = (term) => {
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
+    setQuery(term);
+  };
+
   return (
-    <List>
-      {/* Telegram UI Search Input Field */}
-      <Input
-        header="Search Academic Database"
-        placeholder="Course code (e.g. STAT 151), topic, or keyword..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        after={
-          query ? (
-            <IconButton size="s" mode="plain" onClick={() => setQuery('')}>
-              <Icon24Close />
-            </IconButton>
-          ) : (
-            <Icon24Search style={{ color: 'var(--tgui--hint_color)' }} />
-          )
-        }
-      />
-
-      {/* Results Section */}
-      {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
-          <Spinner size="l" />
+    <div className="walt-page-content">
+      {/* Walt-Style Rounded Search Input */}
+      <div className="walt-search-container">
+        <div className="walt-search-bar">
+          <div className="walt-search-icon">
+            <IconSearch />
+          </div>
+          <input
+            type="text"
+            className="walt-search-input"
+            placeholder="Search courses, past questions, topics..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {query && (
+            <button
+              type="button"
+              className="walt-search-clear"
+              onClick={() => setQuery('')}
+            >
+              <IconClose />
+            </button>
+          )}
         </div>
-      ) : query && results.length > 0 ? (
-        <Section header={`Search Results (${results.length})`} footer="Tap Open to access document or Star to save for offline revision">
-          {results.map((res) => {
-            const bookmarked = isBookmarked(res.id);
-            return (
-              <Cell
-                key={res.id}
-                before={<Chip mode="mono" className="resource-chip">{(res.resource_type || res.type_name || 'DOC').toUpperCase()}</Chip>}
-                subhead={res.resource_type || 'Document'}
-                subtitle={res.description || res.course_title || 'Verified GASS academic document'}
-                after={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <IconButton
-                      size="s"
-                      mode={bookmarked ? 'bezeled' : 'gray'}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleBookmark(res);
-                      }}
-                    >
-                      <Icon28Heart style={{ color: bookmarked ? '#E00613' : '#94A3B8' }} />
-                    </IconButton>
+      </div>
 
-                    <Button
-                      size="s"
-                      mode="filled"
-                      Component="a"
-                      href={res.file_url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Open
-                    </Button>
-                  </div>
-                }
+      {/* When Empty: 4-Column Quick Access Grid (Walt Trade Tab style) */}
+      {!query && (
+        <>
+          <div className="walt-section-header-row" style={{ marginTop: '16px' }}>
+            <span className="walt-section-title">Frequently Searched</span>
+            <span className="walt-section-badge">Quick Jump</span>
+          </div>
+
+          <div className="walt-grid-4col">
+            {QUICK_SEARCH_CHIPS.map((chip) => (
+              <div
+                key={chip.label}
+                className="walt-4col-item"
+                onClick={() => handleQuickChip(chip.query)}
               >
-                {res.title}
-              </Cell>
-            );
-          })}
-        </Section>
-      ) : query ? (
-        <Placeholder
-          header="No Results Found"
-          description={`We couldn't find any resources matching "${query}". Try searching for course codes like "STAT 151" or topics like "probability".`}
-        >
-          <img 
-            src="/img/nav-search.png" 
-            alt="No Results" 
-            style={{ width: '64px', height: '64px', objectFit: 'contain', opacity: 0.6, display: 'block', margin: '0 auto 8px' }} 
-          />
-        </Placeholder>
-      ) : (
-        <Placeholder
-          header="Instant Library Search"
-          description="Type any course code, topic, software, or document name to find verified lecture notes, exam papers, and guides."
-        >
-          <img 
-            src="/img/nav-search.png" 
-            alt="Search" 
-            style={{ width: '80px', height: '80px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
-          />
-        </Placeholder>
+                <div className="walt-4col-circle">
+                  <span>{chip.label.slice(0, 4)}</span>
+                </div>
+                <div className="walt-4col-label">{chip.label}</div>
+                <div className="walt-4col-sub">{chip.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="walt-section-header-row" style={{ marginTop: '24px' }}>
+            <span className="walt-section-title">Browse by Category</span>
+          </div>
+
+          <div className="walt-category-pills-row">
+            {['Past Questions', 'Lecture Slides', 'Formula Sheets', 'Syllabus Packs'].map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                className="walt-cat-pill"
+                onClick={() => handleQuickChip(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </>
       )}
-    </List>
+
+      {/* When Searching: Results or Loading */}
+      {query && (
+        <>
+          <div className="walt-section-header-row" style={{ marginTop: '16px' }}>
+            <span className="walt-section-title">Search Results</span>
+            <span className="walt-section-badge">{results.length} found</span>
+          </div>
+
+          {loading ? (
+            <div className="walt-loading-box">
+              <div className="walt-spinner" />
+              <span>Searching database...</span>
+            </div>
+          ) : results.length > 0 ? (
+            <section className="walt-card-group">
+              {results.map((res, idx) => {
+                const saved = isBookmarked(res.id);
+                const tag = (res.resource_type || res.type_name || 'DOC').toUpperCase();
+                return (
+                  <React.Fragment key={res.id}>
+                    {idx > 0 && <div className="walt-row-divider" />}
+                    <div className="walt-list-row">
+                      <div className="walt-type-tag-pill">{tag}</div>
+                      <div className="walt-row-content">
+                        <div className="walt-row-title">{res.title}</div>
+                        <div className="walt-row-subtitle">
+                          {res.description || res.course_title || 'Verified academic resource'}
+                        </div>
+                      </div>
+                      <div className="walt-row-actions">
+                        <button
+                          type="button"
+                          className="walt-icon-btn"
+                          onClick={() => onToggleBookmark(res)}
+                          title={saved ? 'Remove bookmark' : 'Bookmark'}
+                        >
+                          <IconBookmark active={saved} />
+                        </button>
+                        <a
+                          href={res.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="walt-row-open-btn"
+                        >
+                          <span>Open</span>
+                          <IconExternalLink />
+                        </a>
+                      </div>
+                    </div>
+                  </React.Fragment>
+                );
+              })}
+            </section>
+          ) : (
+            <div className="walt-empty-box">
+              <img src="/img/nav-search.png" alt="No matches" className="walt-empty-img" />
+              <div className="walt-empty-title">No Matches Found</div>
+              <div className="walt-empty-desc">
+                No documents matched "{query}". Try checking course code (e.g. STAT 151) or submit a resource request.
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 }

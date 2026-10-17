@@ -1,7 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, List, Section, Cell, Button, IconButton, Chip, Spinner, Placeholder, Avatar } from '@telegram-apps/telegram-ui';
-import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
-import { Icon28Archive } from '@telegram-apps/telegram-ui/dist/icons/28/archive';
+
+function IconClose() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+function IconBookmark({ active }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill={active ? "#E00613" : "none"} stroke={active ? "#E00613" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
+function IconExternalLink() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  );
+}
 
 export function CourseModal({ course, open, onClose, isBookmarked, onToggleBookmark }) {
   const [resources, setResources] = useState([]);
@@ -31,91 +55,98 @@ export function CourseModal({ course, open, onClose, isBookmarked, onToggleBookm
     }
   };
 
-  if (!course) return null;
+  if (!open || !course) return null;
 
   return (
-    <Modal open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <div style={{ padding: '16px 16px 32px', maxHeight: '85vh', overflowY: 'auto' }}>
-        <List>
-          {/* Course Overview Header Cell */}
-          <Section header={`${course.code} • Level ${course.level}`} footer={course.description || 'Verified course resources provided by the GASS Academic Board.'}>
-            <Cell
-              before={<Avatar size={48} acronym={course.code ? course.code.slice(0, 4) : 'STAT'} />}
-              subhead={`SEMESTER ${course.semester} • ${course.credits || 3} CREDITS`}
-              subtitle={course.title}
-              multiline
-            >
-              {course.code}
-            </Cell>
-          </Section>
+    <div className="walt-modal-overlay" onClick={onClose}>
+      <div className="walt-modal-sheet" onClick={(e) => e.stopPropagation()}>
+        {/* Close Button in Circle (Walt Style) */}
+        <button type="button" className="walt-modal-close" onClick={onClose}>
+          <IconClose />
+        </button>
 
-          {/* Resources List */}
-          {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '36px 0' }}>
-              <Spinner size="m" />
-            </div>
-          ) : resources.length > 0 ? (
-            <Section header={`Available Materials (${resources.length})`}>
-              {resources.map((res) => {
-                const bookmarked = isBookmarked(res.id);
-                return (
-                  <Cell
-                    key={res.id}
-                    before={<Chip mode="mono" className="resource-chip">{(res.type_name || res.resource_type || 'DOC').toUpperCase()}</Chip>}
-                    subhead={res.resource_type || 'Material'}
-                    subtitle={res.description || 'Verified GASS academic file'}
-                    after={
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <IconButton
-                          size="s"
-                          mode={bookmarked ? 'bezeled' : 'gray'}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleBookmark(res);
-                          }}
-                        >
-                          <Icon28Heart style={{ color: bookmarked ? '#E00613' : '#94A3B8' }} />
-                        </IconButton>
-
-                        <Button
-                          size="s"
-                          mode="filled"
-                          Component="a"
-                          href={res.file_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Open
-                        </Button>
-                      </div>
-                    }
-                  >
-                    {res.title}
-                  </Cell>
-                );
-              })}
-            </Section>
-          ) : (
-            <Placeholder
-              header="No Uploaded Materials"
-              description="No slides or past examination papers have been uploaded for this course yet."
-            >
-              <img 
-                src="/img/nav-courses.png" 
-                alt="Materials" 
-                style={{ width: '64px', height: '64px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
-              />
-            </Placeholder>
-          )}
-
-          <div style={{ marginTop: '16px' }}>
-            <Button size="l" mode="bezeled" stretched onClick={onClose}>
-              Close
-            </Button>
+        {/* Top 3D Icon & Title */}
+        <div className="walt-modal-header">
+          <div className="walt-modal-icon-wrap">
+            <img src="/img/nav-courses.png" alt="Course" />
           </div>
-        </List>
+          <div className="walt-modal-course-badge">{course.code} • Level {course.level}</div>
+          <h2 className="walt-modal-title">{course.title}</h2>
+          <p className="walt-modal-desc">
+            Semester {course.semester} • {course.credits || 3} Academic Credits
+          </p>
+        </div>
+
+        {/* Resources Grouped Section */}
+        <div className="walt-section-header-row" style={{ marginTop: '16px' }}>
+          <span className="walt-section-title">Course Materials</span>
+          <span className="walt-section-badge">{resources.length} Available</span>
+        </div>
+
+        {loading ? (
+          <div className="walt-loading-box">
+            <div className="walt-spinner" />
+            <span>Loading files...</span>
+          </div>
+        ) : resources.length > 0 ? (
+          <section className="walt-card-group" style={{ maxHeight: '38vh', overflowY: 'auto' }}>
+            {resources.map((res, idx) => {
+              const saved = isBookmarked(res.id);
+              const tag = (res.type_name || res.resource_type || 'DOC').toUpperCase();
+              return (
+                <React.Fragment key={res.id}>
+                  {idx > 0 && <div className="walt-row-divider" />}
+                  <div className="walt-list-row">
+                    <div className="walt-type-tag-pill">{tag}</div>
+                    <div className="walt-row-content">
+                      <div className="walt-row-title">{res.title}</div>
+                      <div className="walt-row-subtitle">
+                        {res.description || 'Official academic syllabus resource'}
+                      </div>
+                    </div>
+                    <div className="walt-row-actions">
+                      <button
+                        type="button"
+                        className="walt-icon-btn"
+                        onClick={() => onToggleBookmark(res)}
+                        title={saved ? 'Remove bookmark' : 'Bookmark'}
+                      >
+                        <IconBookmark active={saved} />
+                      </button>
+                      <a
+                        href={res.file_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="walt-row-open-btn"
+                      >
+                        <span>Open</span>
+                        <IconExternalLink />
+                      </a>
+                    </div>
+                  </div>
+                </React.Fragment>
+              );
+            })}
+          </section>
+        ) : (
+          <div className="walt-empty-box" style={{ padding: '24px 16px' }}>
+            <div className="walt-empty-title">No Files Uploaded Yet</div>
+            <div className="walt-empty-desc">
+              Request this syllabus or past questions using the Request button in the header.
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Full-Width Got It Button (Walt Image 5 style) */}
+        <button
+          type="button"
+          className="walt-btn-primary walt-btn-full"
+          style={{ marginTop: '20px' }}
+          onClick={onClose}
+        >
+          Got it
+        </button>
       </div>
-    </Modal>
+    </div>
   );
 }

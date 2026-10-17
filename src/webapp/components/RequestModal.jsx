@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { Modal, List, Input, Select, Button, Section, Cell } from '@telegram-apps/telegram-ui';
+
+function IconClose() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
 
 export function RequestModal({ open, onClose, user, onSuccess }) {
   const [level, setLevel] = useState(100);
@@ -9,6 +17,8 @@ export function RequestModal({ open, onClose, user, onSuccess }) {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  if (!open) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,77 +72,102 @@ export function RequestModal({ open, onClose, user, onSuccess }) {
   };
 
   return (
-    <Modal open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <div style={{ padding: '16px 16px 32px', maxHeight: '85vh', overflowY: 'auto' }}>
-        <List>
-          <Section 
-            header="Request Academic Resource" 
-            footer="Submissions are sent directly to the departmental executive board for fulfillment."
+    <div className="walt-modal-overlay" onClick={onClose}>
+      <div className="walt-modal-sheet" onClick={(e) => e.stopPropagation()}>
+        {/* Close Button in Circle */}
+        <button type="button" className="walt-modal-close" onClick={onClose}>
+          <IconClose />
+        </button>
+
+        {/* Modal Header */}
+        <div className="walt-modal-header">
+          <div className="walt-modal-icon-wrap">
+            <img src="/img/nav-search.png" alt="Request" />
+          </div>
+          <h2 className="walt-modal-title">Request Academic Material</h2>
+          <p className="walt-modal-desc">
+            Directly notify the GASS Academic Board to source and upload missing resources.
+          </p>
+        </div>
+
+        {error && (
+          <div className="walt-error-pill">{error}</div>
+        )}
+
+        <form onSubmit={handleSubmit} className="walt-form-group">
+          <div className="walt-form-row">
+            <label className="walt-form-label">Academic Level</label>
+            <select
+              className="walt-form-select"
+              value={level}
+              onChange={(e) => setLevel(Number(e.target.value))}
+            >
+              <option value={100}>Level 100</option>
+              <option value={200}>Level 200</option>
+              <option value={300}>Level 300</option>
+              <option value={400}>Level 400</option>
+            </select>
+          </div>
+
+          <div className="walt-form-row">
+            <label className="walt-form-label">Resource Type</label>
+            <select
+              className="walt-form-select"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+            >
+              <option value="past_questions">Past Examination Questions</option>
+              <option value="lecture_notes">Lecture Slides & Notes</option>
+              <option value="textbook">Core Reference Textbook</option>
+              <option value="tutorials">Tutorial Sheet & Solutions</option>
+              <option value="software">Software Guide (R / Python / SQL)</option>
+            </select>
+          </div>
+
+          <div className="walt-form-row">
+            <label className="walt-form-label">Course Code (Optional)</label>
+            <input
+              type="text"
+              className="walt-form-input"
+              placeholder="e.g. STAT 261, MATH 153"
+              value={courseCode}
+              onChange={(e) => setCourseCode(e.target.value)}
+            />
+          </div>
+
+          <div className="walt-form-row">
+            <label className="walt-form-label">Resource Title *</label>
+            <input
+              type="text"
+              className="walt-form-input"
+              placeholder="e.g. 2023 End of Semester Exam Papers"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="walt-form-row">
+            <label className="walt-form-label">Additional Notes</label>
+            <input
+              type="text"
+              className="walt-form-input"
+              placeholder="Specific lecturer or questions needed..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="walt-btn-primary walt-btn-full"
+            style={{ marginTop: '16px' }}
+            disabled={submitting}
           >
-            {error && (
-              <Cell subhead="ERROR" subtitle={error} multiline style={{ color: 'var(--tgui--destructive_text_color)' }}>
-                Validation Issue
-              </Cell>
-            )}
-
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Select
-                header="Academic Level"
-                value={level}
-                onChange={(e) => setLevel(Number(e.target.value))}
-              >
-                <option value={100}>Level 100</option>
-                <option value={200}>Level 200</option>
-                <option value={300}>Level 300</option>
-                <option value={400}>Level 400</option>
-              </Select>
-
-              <Select
-                header="Resource Category"
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-              >
-                <option value="past_questions">Past Examination Questions</option>
-                <option value="lecture_notes">Lecture Notes / Slides</option>
-                <option value="textbook">Core Reference Textbook</option>
-                <option value="tutorials">Tutorial Sheet & Solution</option>
-                <option value="software">Software Guide (R / Python / SQL)</option>
-              </Select>
-
-              <Input
-                header="Course Code (Optional)"
-                placeholder="e.g. STAT 151, MATH 221"
-                value={courseCode}
-                onChange={(e) => setCourseCode(e.target.value)}
-              />
-
-              <Input
-                header="Resource Title & Details"
-                placeholder="e.g. 2023 End of Semester Past Questions with Solutions"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-
-              <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <Button
-                  size="l"
-                  mode="filled"
-                  type="submit"
-                  stretched
-                  loading={submitting}
-                >
-                  Submit Request
-                </Button>
-
-                <Button size="m" mode="bezeled" stretched onClick={onClose} type="button">
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </Section>
-        </List>
+            {submitting ? 'Submitting...' : 'Submit Request'}
+          </button>
+        </form>
       </div>
-    </Modal>
+    </div>
   );
 }

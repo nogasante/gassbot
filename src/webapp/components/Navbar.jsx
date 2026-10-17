@@ -1,63 +1,92 @@
 import React from 'react';
-import { Tabbar } from '@telegram-apps/telegram-ui';
-import { Icon28Stats } from '@telegram-apps/telegram-ui/dist/icons/28/stats';
-import { Icon28Archive } from '@telegram-apps/telegram-ui/dist/icons/28/archive';
-import { Icon28Devices } from '@telegram-apps/telegram-ui/dist/icons/28/devices';
-import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
 
-function Icon28Search(props) {
+// Crisp, dedicated SVG icons matching Telegram native aesthetic
+function IconHome({ active }) {
   return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path
-        d="M12.5 4a8.5 8.5 0 105.3 15.15l5.02 5.03a1 1 0 001.42-1.42l-5.03-5.02A8.5 8.5 0 0012.5 4zm-6.5 8.5a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"
-        fill="currentColor"
-      />
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.4" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z" />
     </svg>
   );
 }
 
-export function Navbar({ activeTab, onTabChange }) {
+function IconCourses({ active }) {
   return (
-    <Tabbar>
-      <Tabbar.Item
-        selected={activeTab === 'home'}
-        text="Home"
-        onClick={() => onTabChange('home')}
-      >
-        <Icon28Stats />
-      </Tabbar.Item>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.4" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <line x1="8" y1="6" x2="16" y2="6" />
+      <line x1="8" y1="10" x2="14" y2="10" />
+    </svg>
+  );
+}
 
-      <Tabbar.Item
-        selected={activeTab === 'courses'}
-        text="Courses"
-        onClick={() => onTabChange('courses')}
-      >
-        <Icon28Archive />
-      </Tabbar.Item>
+function IconSkills({ active }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.4" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+      <line x1="14" y1="4" x2="10" y2="20" />
+    </svg>
+  );
+}
 
-      <Tabbar.Item
-        selected={activeTab === 'beyond'}
-        text="Skills"
-        onClick={() => onTabChange('beyond')}
-      >
-        <Icon28Devices />
-      </Tabbar.Item>
+function IconSearch({ active }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? "2.4" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
 
-      <Tabbar.Item
-        selected={activeTab === 'search'}
-        text="Search"
-        onClick={() => onTabChange('search')}
-      >
-        <Icon28Search />
-      </Tabbar.Item>
+function IconSaved({ active }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={active ? "1" : "1.8"} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
 
-      <Tabbar.Item
-        selected={activeTab === 'saved'}
-        text="Saved"
-        onClick={() => onTabChange('saved')}
-      >
-        <Icon28Heart />
-      </Tabbar.Item>
-    </Tabbar>
+const TABS = [
+  { key: 'home', label: 'Home', icon: IconHome },
+  { key: 'courses', label: 'Courses', icon: IconCourses },
+  { key: 'beyond', label: 'Skills', icon: IconSkills },
+  { key: 'search', label: 'Search', icon: IconSearch },
+  { key: 'saved', label: 'Saved', icon: IconSaved },
+];
+
+export function Navbar({ activeTab, onTabChange }) {
+  const handleTabClick = (key) => {
+    if (key === activeTab) return;
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.selectionChanged();
+    }
+    onTabChange(key);
+  };
+
+  return (
+    <div className="walt-dock-wrapper">
+      <nav className="walt-dock-capsule">
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.key;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              className={`walt-dock-tab ${isActive ? 'active' : ''}`}
+              onClick={() => handleTabClick(tab.key)}
+              aria-label={tab.label}
+            >
+              <div className="walt-dock-icon">
+                <Icon active={isActive} />
+              </div>
+              <span className="walt-dock-label">{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+      <div className="walt-dock-handle">@gassknustbot</div>
+    </div>
   );
 }
