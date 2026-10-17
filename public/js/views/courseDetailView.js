@@ -38,7 +38,7 @@ const CourseDetailView = (() => {
             <span class="course-code">${courseData.code}</span>
             <span class="course-level-badge">Level ${courseData.level} • Semester ${courseData.semester}</span>
           </div>
-          <h2 style="font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: #FFFFFF; margin-bottom: 8px;">${courseData.title}</h2>
+          <h2 style="font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); margin-bottom: 8px;">${courseData.title}</h2>
           <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.45;">${courseData.description || 'Departmental course syllabus and curated learning materials.'}</p>
           ${topicsHtml}
         </div>
@@ -93,12 +93,19 @@ const CourseDetailView = (() => {
           <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(74, 144, 226, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--gass-blue);">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           </div>
-          <div style="font-weight: 800; font-size: 15px; margin-bottom: 6px; color: #FFFFFF;">No Files in This Category</div>
+          <div style="font-weight: 800; font-size: 15px; margin-bottom: 6px; color: var(--text-primary);">No Files in This Category</div>
           <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Need this document? Submit a request and our executives will upload it.</p>
           <button class="btn-primary" style="margin: 0 auto;" onclick="RequestModal.open({ courseCode: '${courseData.code}', courseId: ${courseData.id} })">Request for ${courseData.code}</button>
         </div>
       `;
       return;
+    }
+
+    let localBookmarks = [];
+    try {
+      localBookmarks = JSON.parse(localStorage.getItem('gass_saved_resources') || '[]');
+    } catch (e) {
+      localBookmarks = [];
     }
 
     listContainer.innerHTML = materials.map(m => {
@@ -122,6 +129,7 @@ const CourseDetailView = (() => {
       const fileUrl = m.file_url || (m.telegram_file_id ? `https://t.me/gassknustbot?start=res_${m.id}` : '#');
       const isTelegramOnly = m.telegram_file_id && !m.file_url.startsWith('http');
       const actionLabel = isTelegramOnly ? 'Get in Bot' : 'Open';
+      const isBookmarked = localBookmarks.some(item => item.id === m.id);
 
       return `
         <div class="material-card">
@@ -135,7 +143,7 @@ const CourseDetailView = (() => {
             </div>
           </div>
           <div class="material-actions">
-            <button class="btn-icon" title="Save Bookmark" onclick="CourseDetailView.toggleBookmark(${m.id}, this)">
+            <button class="btn-icon ${isBookmarked ? 'bookmarked' : ''}" title="Save Bookmark" onclick="CourseDetailView.toggleBookmark(${m.id}, this)">
               <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
             </button>
             <button class="btn-primary" onclick="CourseDetailView.openMaterial('${fileUrl}', ${m.id})">${actionLabel}</button>
@@ -152,8 +160,34 @@ const CourseDetailView = (() => {
 
   async function toggleBookmark(resourceId, btnElement) {
     TelegramBridge.haptic('success');
-    if (btnElement) btnElement.classList.toggle('bookmarked');
     const user = TelegramBridge.getUser();
+    let isNowSaved = false;
+
+    try {
+      const stored = JSON.parse(localStorage.getItem('gass_saved_resources') || '[]');
+      const material = (courseData && courseData.resources) ? courseData.resources.find(r => r.id === resourceId) : null;
+      const existsIndex = stored.findIndex(item => item.id === resourceId);
+
+      if (existsIndex >= 0) {
+        stored.splice(existsIndex, 1);
+        localStorage.setItem('gass_saved_resources', JSON.stringify(stored));
+        if (btnElement) btnElement.classList.remove('bookmarked');
+        TelegramBridge.showToast('Bookmark removed', 'bookmark');
+        return;
+      } else if (material) {
+        stored.unshift({
+          ...material,
+          course_code: courseData.code,
+          course_title: courseData.title
+        });
+        localStorage.setItem('gass_saved_resources', JSON.stringify(stored));
+        if (btnElement) btnElement.classList.add('bookmarked');
+        isNowSaved = true;
+      }
+    } catch (e) {}
+
+    if (btnElement && isNowSaved) btnElement.classList.add('bookmarked');
+
     try {
       await API.bookmarkResource(user.id, resourceId);
       TelegramBridge.showToast('Material saved to Bookmarks!', 'bookmark');

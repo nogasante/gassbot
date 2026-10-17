@@ -75,7 +75,7 @@ const HomeView = (() => {
             <img src="img/track-ds.png" class="track-3d-icon" alt="Data Science & AI" />
             <span style="font-size: 10px; font-weight: 800; color: #60A5FA; text-transform: uppercase; letter-spacing: 0.04em;">AI & ML</span>
           </div>
-          <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.01em;">Data Science & AI</div>
+          <div style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.01em;">Data Science & AI</div>
           <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.35;">R, Python, ML & Analytics</div>
         </div>
 
@@ -84,7 +84,7 @@ const HomeView = (() => {
             <img src="img/track-code.png" class="track-3d-icon" alt="Programming Tools" />
             <span style="font-size: 10px; font-weight: 800; color: #34D399; text-transform: uppercase; letter-spacing: 0.04em;">SOFTWARE</span>
           </div>
-          <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.01em;">Software & Tools</div>
+          <div style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.01em;">Software & Tools</div>
           <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.35;">SQL, Git, LaTeX, Excel</div>
         </div>
 
@@ -93,7 +93,7 @@ const HomeView = (() => {
             <img src="img/track-career.png" class="track-3d-icon" alt="Careers & Growth" />
             <span style="font-size: 10px; font-weight: 800; color: #FBBF24; text-transform: uppercase; letter-spacing: 0.04em;">CAREERS</span>
           </div>
-          <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.01em;">Careers & Growth</div>
+          <div style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.01em;">Careers & Growth</div>
           <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.35;">Internships & CV Writing</div>
         </div>
 
@@ -102,16 +102,16 @@ const HomeView = (() => {
             <img src="img/track-research.png" class="track-3d-icon" alt="Research & Thesis" />
             <span style="font-size: 10px; font-weight: 800; color: #A78BFA; text-transform: uppercase; letter-spacing: 0.04em;">RESEARCH</span>
           </div>
-          <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.01em;">Research & Thesis</div>
+          <div style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.01em;">Research & Thesis</div>
           <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.35;">Academic Writing & Stats</div>
         </div>
       </div>
 
       <!-- Quick Document Request Action -->
-      <div class="course-card" style="background: linear-gradient(135deg, rgba(224, 6, 19, 0.12), rgba(11, 83, 111, 0.2)); border-color: rgba(224, 6, 19, 0.35); padding: 18px;" onclick="RequestModal.open()">
+      <div class="course-card" style="background: linear-gradient(135deg, rgba(224, 6, 19, 0.06), rgba(11, 83, 111, 0.09)); border-color: rgba(224, 6, 19, 0.25); padding: 18px;" onclick="RequestModal.open()">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px;">
           <div>
-            <div style="font-weight: 800; font-size: 14px; color: #FFFFFF; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+            <div style="font-weight: 800; font-size: 14px; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
               <span>Need a Specific Past Question or Slide?</span>
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">

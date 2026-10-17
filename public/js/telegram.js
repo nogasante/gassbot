@@ -9,8 +9,8 @@ const TelegramBridge = (() => {
       try {
         tg.ready();
         tg.expand();
-        tg.setHeaderColor('#0B536F');
-        tg.setBackgroundColor('#0B1320');
+        tg.setHeaderColor('#FFFFFF');
+        tg.setBackgroundColor('#F8FAFC');
         tg.enableClosingConfirmation();
       } catch (err) {
         console.warn('Telegram WebApp initialization notice:', err);

@@ -6,7 +6,7 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -90,7 +90,7 @@ h1, h2, h3, h4, .brand-text h1, .hero-title, .section-title, .course-code, .moda
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #FFFFFF;
+  color: var(--text-primary);
   line-height: 1.2;
 }
 
@@ -106,14 +106,14 @@ h1, h2, h3, h4, .brand-text h1, .hero-title, .section-title, .course-code, .moda
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   padding: 4px 12px 4px 5px;
   border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
-  box-shadow: var(--highlight-top);
+  box-shadow: var(--shadow-sm);
 }
 
 .user-avatar {
@@ -207,7 +207,8 @@ h1, h2, h3, h4, .brand-text h1, .hero-title, .section-title, .course-code, .moda
 }
 
 .nav-item.active {
-  color: #FFFFFF;
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 .nav-item.active .nav-icon-img {

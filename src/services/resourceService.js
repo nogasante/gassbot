@@ -132,12 +132,33 @@ async function createResource({
 }
 
 async function saveResourceBookmark(userId, resourceId) {
+  // Resolve userId: check if it's already users.id or users.telegram_id
+  let resolvedUserId = null;
+  const userCheck = await query(
+    `SELECT id FROM users WHERE id = $1 OR telegram_id = $1 LIMIT 1;`,
+    [userId]
+  );
+
+  if (userCheck.rows.length > 0) {
+    resolvedUserId = userCheck.rows[0].id;
+  } else {
+    // If user not in database yet, auto-provision user with telegram_id
+    const newUser = await query(
+      `INSERT INTO users (telegram_id, username, first_name, role)
+       VALUES ($1, 'student', 'Student', 'student')
+       ON CONFLICT (telegram_id) DO UPDATE SET updated_at = NOW()
+       RETURNING id;`,
+      [userId]
+    );
+    resolvedUserId = newUser.rows[0].id;
+  }
+
   const res = await query(
     `INSERT INTO saved_resources (user_id, resource_id)
      VALUES ($1, $2)
      ON CONFLICT (user_id, resource_id) DO NOTHING
      RETURNING id, user_id, resource_id, created_at;`,
-    [userId, resourceId]
+    [resolvedUserId, resourceId]
   );
   return res.rows[0] || null;
 }
@@ -149,7 +170,8 @@ async function getSavedResources(userId) {
      FROM saved_resources sr
      JOIN resources r ON sr.resource_id = r.id
      LEFT JOIN courses c ON r.course_id = c.id
-     WHERE sr.user_id = $1
+     JOIN users u ON sr.user_id = u.id
+     WHERE u.id = $1 OR u.telegram_id = $1
      ORDER BY sr.created_at DESC;`,
     [userId]
   );

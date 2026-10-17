@@ -86,7 +86,7 @@ const SearchView = (() => {
             <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(74, 144, 226, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--gass-blue);">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </div>
-            <div style="font-weight: 800; font-size: 15px; margin-bottom: 6px; color: #FFFFFF;">No Materials Found for "${query}"</div>
+            <div style="font-weight: 800; font-size: 15px; margin-bottom: 6px; color: var(--text-primary);">No Materials Found for "${query}"</div>
             <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Would you like our academic team to upload this document?</p>
             <button class="btn-primary" style="margin: 0 auto;" onclick="RequestModal.open({ topicTitle: '${query.replace(/'/g, "\\'")}' })">
               Request "${query}"

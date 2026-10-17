@@ -85,7 +85,7 @@ const AcademicView = (() => {
             <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(74, 144, 226, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--gass-blue);">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
             </div>
-            <div style="font-weight: 800; font-size: 15px; margin-bottom: 6px; color: #FFFFFF;">No Courses Listed Yet</div>
+            <div style="font-weight: 800; font-size: 15px; margin-bottom: 6px; color: var(--text-primary);">No Courses Listed Yet</div>
             <p style="font-size: 12px; color: var(--text-secondary); max-width: 320px; margin: 0 auto 16px; line-height: 1.4;">
               Courses for Level ${currentLevel} Semester ${currentSemester} are being synced with the department.
             </p>

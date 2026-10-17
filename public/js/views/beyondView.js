@@ -122,7 +122,7 @@ const BeyondView = (() => {
       grid.innerHTML = subTopics.map(sub => `
         <div class="course-card" onclick="BeyondView.selectSubTopic('${sub.key}')">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-            <span style="font-weight: 800; font-size: 14px; color: #FFFFFF;">${sub.label}</span>
+            <span style="font-weight: 800; font-size: 14px; color: var(--text-primary);">${sub.label}</span>
             <span style="font-size: 11px; font-weight: 700; color: var(--gass-blue);">EXPLORE</span>
           </div>
           <div class="course-desc" style="margin-bottom: 6px;">${sub.description || 'Hands-on manuals, tutorials, and templates.'}</div>
@@ -169,7 +169,7 @@ const BeyondView = (() => {
             <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(74, 144, 226, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--gass-blue);">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             </div>
-            <div style="font-weight: 800; font-size: 15px; margin-bottom: 6px; color: #FFFFFF;">No Materials in This Topic Yet</div>
+            <div style="font-weight: 800; font-size: 15px; margin-bottom: 6px; color: var(--text-primary);">No Materials in This Topic Yet</div>
             <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Have a guide or cheatsheet to request? Submit to the team.</p>
             <button class="btn-primary" style="margin: 0 auto;" onclick="RequestModal.open({ topicTitle: '${subKey}' })">Request Guide</button>
           </div>
