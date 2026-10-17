@@ -192,37 +192,38 @@ h1, h2, h3, h4, .brand-text h1, .hero-title, .section-title, .course-code, .moda
   padding: 6px 0;
 }
 
-.nav-item svg {
-  width: 22px;
-  height: 22px;
-  margin-bottom: 3px;
-  stroke: currentColor;
-  stroke-width: 2;
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 0.2s var(--ease-spring), stroke 0.15s ease;
+.nav-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 2px;
+  transition: transform 0.22s var(--ease-spring), filter 0.2s ease, opacity 0.2s ease;
+  filter: grayscale(35%) brightness(0.85);
+  opacity: 0.7;
 }
 
-.nav-item:active svg {
-  transform: scale(0.88);
+.nav-item:active .nav-icon-img {
+  transform: scale(0.86);
 }
 
 .nav-item.active {
   color: #FFFFFF;
 }
 
-.nav-item.active svg {
-  stroke: var(--gass-blue);
-  transform: translateY(-2px);
+.nav-item.active .nav-icon-img {
+  filter: none;
+  opacity: 1;
+  transform: translateY(-2px) scale(1.12);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
 }
 
 .nav-item.active::before {
   content: '';
   position: absolute;
-  top: 6px;
-  width: 32px;
-  height: 2px;
+  top: 4px;
+  width: 24px;
+  height: 2.5px;
   background: linear-gradient(90deg, var(--gass-red), var(--gass-blue));
   border-radius: var(--radius-full);
 }

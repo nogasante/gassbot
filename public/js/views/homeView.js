@@ -62,36 +62,36 @@ const HomeView = (() => {
         </button>
       </div>
 
-      <!-- Beyond Curriculum Skill Tracks with 3D App Graphics -->
+      <!-- Practical Skills & Toolkits with 3D App Graphics -->
       <div class="section-title">
-        <span>Specialized Skill Tracks</span>
-        <a href="#beyond" onclick="TelegramBridge.haptic('light')">All Tracks →</a>
+        <span>Skills & Toolkits</span>
+        <a href="#beyond" onclick="TelegramBridge.haptic('light')">Explore All →</a>
       </div>
-      <p class="section-subtitle">Practical tools, data science stacks, and career preparation.</p>
+      <p class="section-subtitle">Data science, statistical programming, career development, and thesis research.</p>
 
       <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;">
         <div class="course-card" onclick="App.navigate('beyond', { pillar: 'data_science_ai' })">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
             <img src="img/track-ds.jpg" class="track-3d-icon" alt="Data Science & AI" />
-            <span style="font-size: 10px; font-weight: 800; color: #60A5FA; text-transform: uppercase;">TRACK 01</span>
+            <span style="font-size: 10px; font-weight: 800; color: #60A5FA; text-transform: uppercase; letter-spacing: 0.04em;">AI & ML</span>
           </div>
           <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.01em;">Data Science & AI</div>
-          <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.35;">R, Python, ML, Biostats</div>
+          <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.35;">R, Python, ML & Analytics</div>
         </div>
 
         <div class="course-card" onclick="App.navigate('beyond', { pillar: 'programming_software' })">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
             <img src="img/track-code.jpg" class="track-3d-icon" alt="Programming Tools" />
-            <span style="font-size: 10px; font-weight: 800; color: #34D399; text-transform: uppercase;">TRACK 02</span>
+            <span style="font-size: 10px; font-weight: 800; color: #34D399; text-transform: uppercase; letter-spacing: 0.04em;">SOFTWARE</span>
           </div>
-          <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.01em;">Programming Tools</div>
+          <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.01em;">Software & Tools</div>
           <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.35;">SQL, Git, LaTeX, Excel</div>
         </div>
 
         <div class="course-card" onclick="App.navigate('beyond', { pillar: 'career_professional' })">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
             <img src="img/track-career.jpg" class="track-3d-icon" alt="Careers & Growth" />
-            <span style="font-size: 10px; font-weight: 800; color: #FBBF24; text-transform: uppercase;">TRACK 03</span>
+            <span style="font-size: 10px; font-weight: 800; color: #FBBF24; text-transform: uppercase; letter-spacing: 0.04em;">CAREERS</span>
           </div>
           <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.01em;">Careers & Growth</div>
           <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.35;">Internships & CV Writing</div>
@@ -100,7 +100,7 @@ const HomeView = (() => {
         <div class="course-card" onclick="App.navigate('beyond', { pillar: 'research_thesis' })">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
             <img src="img/track-research.jpg" class="track-3d-icon" alt="Research & Thesis" />
-            <span style="font-size: 10px; font-weight: 800; color: #A78BFA; text-transform: uppercase;">TRACK 04</span>
+            <span style="font-size: 10px; font-weight: 800; color: #A78BFA; text-transform: uppercase; letter-spacing: 0.04em;">RESEARCH</span>
           </div>
           <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.01em;">Research & Thesis</div>
           <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.35;">Academic Writing & Stats</div>

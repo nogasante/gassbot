@@ -38,33 +38,33 @@ const BeyondView = (() => {
     try {
       categories = await API.getBeyondCategories();
 
-      const trackData = {
+      const categoryData = {
         data_science_ai: {
           img: 'img/track-ds.jpg',
-          badge: 'TRACK 01',
+          badge: 'AI & ML',
           color: '#60A5FA'
         },
         programming_software: {
           img: 'img/track-code.jpg',
-          badge: 'TRACK 02',
+          badge: 'SOFTWARE',
           color: '#34D399'
         },
         career_professional: {
           img: 'img/track-career.jpg',
-          badge: 'TRACK 03',
+          badge: 'CAREERS',
           color: '#FBBF24'
         },
         research_thesis: {
           img: 'img/track-research.jpg',
-          badge: 'TRACK 04',
+          badge: 'RESEARCH',
           color: '#A78BFA'
         }
       };
 
       content.innerHTML = categories.map(cat => {
-        const meta = trackData[cat.key] || {
+        const meta = categoryData[cat.key] || {
           img: 'img/track-ds.jpg',
-          badge: 'TRACK',
+          badge: 'SKILLS',
           color: 'var(--gass-blue)'
         };
 
@@ -83,7 +83,7 @@ const BeyondView = (() => {
         `;
       }).join('');
     } catch (err) {
-      content.innerHTML = `<div style="text-align: center; color: var(--gass-red); padding: 20px;">Failed to load tracks.</div>`;
+      content.innerHTML = `<div style="text-align: center; color: var(--gass-red); padding: 20px;">Failed to load categories.</div>`;
     }
   }
 
@@ -101,7 +101,7 @@ const BeyondView = (() => {
       <div style="margin-bottom: 16px;">
         <button class="pill" onclick="BeyondView.backToPillars()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          <span>All Tracks</span>
+          <span>All Categories</span>
         </button>
       </div>
       <div class="course-grid" id="subtopics-grid">
@@ -115,7 +115,7 @@ const BeyondView = (() => {
       const grid = document.getElementById('subtopics-grid');
 
       if (subTopics.length === 0) {
-        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-secondary);">No topics found in this track.</div>`;
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-secondary);">No topics found in this category.</div>`;
         return;
       }
 
