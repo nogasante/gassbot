@@ -488,20 +488,19 @@
   padding: 22px 20px;
 }
 
-/* In-App 3D Track Icons */
+/* In-App 3D Category Graphics */
 .track-3d-icon {
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-md);
-  object-fit: cover;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: transform 0.2s var(--ease-spring);
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.55));
+  transition: transform 0.2s var(--ease-spring), filter 0.2s ease;
   flex-shrink: 0;
 }
 
 .course-card:hover .track-3d-icon, .category-card:hover .track-3d-icon {
-  transform: scale(1.08) rotate(-3deg);
+  transform: scale(1.12) rotate(-3deg);
+  filter: drop-shadow(0 8px 16px rgba(74, 144, 226, 0.35));
 }
 
 .hero-tag {

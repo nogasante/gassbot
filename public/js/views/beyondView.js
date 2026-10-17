@@ -40,22 +40,22 @@ const BeyondView = (() => {
 
       const categoryData = {
         data_science_ai: {
-          img: 'img/track-ds.jpg',
+          img: 'img/track-ds.png',
           badge: 'AI & ML',
           color: '#60A5FA'
         },
         programming_software: {
-          img: 'img/track-code.jpg',
+          img: 'img/track-code.png',
           badge: 'SOFTWARE',
           color: '#34D399'
         },
         career_professional: {
-          img: 'img/track-career.jpg',
+          img: 'img/track-career.png',
           badge: 'CAREERS',
           color: '#FBBF24'
         },
         research_thesis: {
-          img: 'img/track-research.jpg',
+          img: 'img/track-research.png',
           badge: 'RESEARCH',
           color: '#A78BFA'
         }
@@ -63,7 +63,7 @@ const BeyondView = (() => {
 
       content.innerHTML = categories.map(cat => {
         const meta = categoryData[cat.key] || {
-          img: 'img/track-ds.jpg',
+          img: 'img/track-ds.png',
           badge: 'SKILLS',
           color: 'var(--gass-blue)'
         };
