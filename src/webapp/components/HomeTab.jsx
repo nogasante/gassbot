@@ -151,24 +151,6 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar, o
         </div>
       </section>
 
-      {/* 3. Walt's Cyan Announcement Banner Card with 3D Graphics */}
-      <section 
-        className="walt-cyan-banner"
-        onClick={() => {
-          triggerHaptic('light');
-          onNavigateTab('search');
-        }}
-      >
-        <div className="walt-banner-text-block">
-          <div className="walt-banner-tag">SEMESTER 1 EXAM PREP</div>
-          <h3 className="walt-banner-heading">Past Questions Ready</h3>
-          <p className="walt-banner-sub">Step-by-step revision solutions & formula sheets.</p>
-          <span className="walt-banner-link">Instant Search &gt;</span>
-        </div>
-        <div className="walt-banner-graphic">
-          <img src="/img/hero-banner.png" alt="Portal 3D Banner" />
-        </div>
-      </section>
 
       {/* 4. Official Departmental Announcement Card */}
       {latestAnnouncement && (
