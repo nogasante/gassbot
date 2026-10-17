@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Section, Cell, Input, Spinner, Placeholder, Badge, Button, IconButton } from '@telegram-apps/telegram-ui';
-import { Search as SearchIcon, Download, Star, X } from 'lucide-react';
+import { List, Section, Cell, Input, Spinner, Placeholder, Badge, Button, IconButton } from '@telegram-apps/telegram-ui';
+import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
+import { Icon24Close } from '@telegram-apps/telegram-ui/dist/icons/24/close';
+
+function Icon24Search(props) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M10.5 3a7.5 7.5 0 104.68 13.37l4.72 4.73a1 1 0 001.42-1.42l-4.73-4.72A7.5 7.5 0 0010.5 3zm-5.5 7.5a5.5 5.5 0 1111 0 5.5 5.5 0 01-11 0z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
 
 export function SearchTab({ isBookmarked, onToggleBookmark }) {
   const [query, setQuery] = useState('');
@@ -39,28 +51,23 @@ export function SearchTab({ isBookmarked, onToggleBookmark }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 0 24px' }}>
+    <List>
       {/* Telegram UI Search Input Field */}
-      <div style={{ padding: '0 16px' }}>
-        <Input
-          header="Search Academic Database"
-          placeholder="Course code (e.g. STAT 151), topic, or keyword..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          after={
-            query ? (
-              <X 
-                size={18} 
-                color="#64748B" 
-                style={{ cursor: 'pointer' }} 
-                onClick={() => setQuery('')} 
-              />
-            ) : (
-              <SearchIcon size={18} color="#64748B" />
-            )
-          }
-        />
-      </div>
+      <Input
+        header="Search Academic Database"
+        placeholder="Course code (e.g. STAT 151), topic, or keyword..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        after={
+          query ? (
+            <IconButton size="s" mode="plain" onClick={() => setQuery('')}>
+              <Icon24Close />
+            </IconButton>
+          ) : (
+            <Icon24Search style={{ color: 'var(--tgui--hint_color)' }} />
+          )
+        }
+      />
 
       {/* Results Section */}
       {loading ? (
@@ -87,7 +94,7 @@ export function SearchTab({ isBookmarked, onToggleBookmark }) {
                         onToggleBookmark(res);
                       }}
                     >
-                      <Star size={16} fill={bookmarked ? '#D97706' : 'none'} color={bookmarked ? '#D97706' : '#64748B'} />
+                      <Icon28Heart style={{ color: bookmarked ? '#E00613' : 'inherit' }} />
                     </IconButton>
 
                     <Button
@@ -97,7 +104,6 @@ export function SearchTab({ isBookmarked, onToggleBookmark }) {
                       href={res.file_url}
                       target="_blank"
                       rel="noreferrer"
-                      before={<Download size={14} />}
                     >
                       Open
                     </Button>
@@ -114,16 +120,16 @@ export function SearchTab({ isBookmarked, onToggleBookmark }) {
           header="No Results Found"
           description={`We couldn't find any resources matching "${query}". Try searching for course codes like "STAT 151" or topics like "probability".`}
         >
-          <SearchIcon size={48} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
+          <Icon24Search style={{ width: '48px', height: '48px', margin: '0 auto 12px', color: 'var(--tgui--hint_color)' }} />
         </Placeholder>
       ) : (
         <Placeholder
           header="Instant Library Search"
           description="Type any course code, topic, software, or document name to find verified lecture notes, exam papers, and guides."
         >
-          <SearchIcon size={48} color="#0B536F" style={{ margin: '0 auto 12px' }} />
+          <Icon24Search style={{ width: '48px', height: '48px', margin: '0 auto 12px', color: 'var(--tgui--link_color)' }} />
         </Placeholder>
       )}
-    </div>
+    </List>
   );
 }

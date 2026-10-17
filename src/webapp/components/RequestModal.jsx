@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Input, Select, Button, Section, Cell } from '@telegram-apps/telegram-ui';
+import { Modal, List, Input, Select, Button, Section, Cell } from '@telegram-apps/telegram-ui';
 
 export function RequestModal({ open, onClose, user, onSuccess }) {
   const [level, setLevel] = useState(100);
@@ -55,72 +55,74 @@ export function RequestModal({ open, onClose, user, onSuccess }) {
   return (
     <Modal open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <div style={{ padding: '16px 16px 32px', maxHeight: '85vh', overflowY: 'auto' }}>
-        <Section 
-          header="Request Academic Resource" 
-          footer="Submissions are sent directly to the departmental executive board for fulfillment."
-        >
-          {error && (
-            <Cell subhead="ERROR" subtitle={error} multiline style={{ color: 'var(--tgui--destructive_text_color)' }}>
-              Validation Issue
-            </Cell>
-          )}
+        <List>
+          <Section 
+            header="Request Academic Resource" 
+            footer="Submissions are sent directly to the departmental executive board for fulfillment."
+          >
+            {error && (
+              <Cell subhead="ERROR" subtitle={error} multiline style={{ color: 'var(--tgui--destructive_text_color)' }}>
+                Validation Issue
+              </Cell>
+            )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '8px 0' }}>
-            <Select
-              header="Academic Level"
-              value={level}
-              onChange={(e) => setLevel(Number(e.target.value))}
-            >
-              <option value={100}>Level 100</option>
-              <option value={200}>Level 200</option>
-              <option value={300}>Level 300</option>
-              <option value={400}>Level 400</option>
-            </Select>
-
-            <Select
-              header="Resource Category"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-            >
-              <option value="past_questions">Past Examination Questions</option>
-              <option value="lecture_notes">Lecture Notes / Slides</option>
-              <option value="textbook">Core Reference Textbook</option>
-              <option value="tutorials">Tutorial Sheet & Solution</option>
-              <option value="software">Software Guide (R / Python / SQL)</option>
-            </Select>
-
-            <Input
-              header="Course Code (Optional)"
-              placeholder="e.g. STAT 151, MATH 221"
-              value={courseCode}
-              onChange={(e) => setCourseCode(e.target.value)}
-            />
-
-            <Input
-              header="Resource Title & Details"
-              placeholder="e.g. 2023 End of Semester Past Questions with Solutions"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-
-            <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Button
-                size="l"
-                mode="filled"
-                type="submit"
-                stretched
-                loading={submitting}
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Select
+                header="Academic Level"
+                value={level}
+                onChange={(e) => setLevel(Number(e.target.value))}
               >
-                Submit Request
-              </Button>
+                <option value={100}>Level 100</option>
+                <option value={200}>Level 200</option>
+                <option value={300}>Level 300</option>
+                <option value={400}>Level 400</option>
+              </Select>
 
-              <Button size="m" mode="bezeled" stretched onClick={onClose} type="button">
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </Section>
+              <Select
+                header="Resource Category"
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+              >
+                <option value="past_questions">Past Examination Questions</option>
+                <option value="lecture_notes">Lecture Notes / Slides</option>
+                <option value="textbook">Core Reference Textbook</option>
+                <option value="tutorials">Tutorial Sheet & Solution</option>
+                <option value="software">Software Guide (R / Python / SQL)</option>
+              </Select>
+
+              <Input
+                header="Course Code (Optional)"
+                placeholder="e.g. STAT 151, MATH 221"
+                value={courseCode}
+                onChange={(e) => setCourseCode(e.target.value)}
+              />
+
+              <Input
+                header="Resource Title & Details"
+                placeholder="e.g. 2023 End of Semester Past Questions with Solutions"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+
+              <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Button
+                  size="l"
+                  mode="filled"
+                  type="submit"
+                  stretched
+                  loading={submitting}
+                >
+                  Submit Request
+                </Button>
+
+                <Button size="m" mode="bezeled" stretched onClick={onClose} type="button">
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </Section>
+        </List>
       </div>
     </Modal>
   );

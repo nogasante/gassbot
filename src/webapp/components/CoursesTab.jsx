@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Section, Cell, SegmentedControl, Spinner, Placeholder, Avatar, Badge } from '@telegram-apps/telegram-ui';
-import { ChevronRight, BookOpen } from 'lucide-react';
+import { List, Section, Cell, SegmentedControl, Spinner, Placeholder, Avatar } from '@telegram-apps/telegram-ui';
+import { Icon24ChevronRight } from '@telegram-apps/telegram-ui/dist/icons/24/chevron_right';
+import { Icon28Archive } from '@telegram-apps/telegram-ui/dist/icons/28/archive';
 
 export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
   const [level, setLevel] = useState(initialLevel);
@@ -31,36 +32,32 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 0 24px' }}>
+    <List>
       {/* Level Segmented Switcher */}
-      <div style={{ padding: '0 16px' }}>
-        <SegmentedControl>
-          <SegmentedControl.Item selected={level === 100} onClick={() => setLevel(100)}>
-            L100
-          </SegmentedControl.Item>
-          <SegmentedControl.Item selected={level === 200} onClick={() => setLevel(200)}>
-            L200
-          </SegmentedControl.Item>
-          <SegmentedControl.Item selected={level === 300} onClick={() => setLevel(300)}>
-            L300
-          </SegmentedControl.Item>
-          <SegmentedControl.Item selected={level === 400} onClick={() => setLevel(400)}>
-            L400
-          </SegmentedControl.Item>
-        </SegmentedControl>
-      </div>
+      <SegmentedControl>
+        <SegmentedControl.Item selected={level === 100} onClick={() => setLevel(100)}>
+          L100
+        </SegmentedControl.Item>
+        <SegmentedControl.Item selected={level === 200} onClick={() => setLevel(200)}>
+          L200
+        </SegmentedControl.Item>
+        <SegmentedControl.Item selected={level === 300} onClick={() => setLevel(300)}>
+          L300
+        </SegmentedControl.Item>
+        <SegmentedControl.Item selected={level === 400} onClick={() => setLevel(400)}>
+          L400
+        </SegmentedControl.Item>
+      </SegmentedControl>
 
       {/* Semester Segmented Switcher */}
-      <div style={{ padding: '0 16px 8px' }}>
-        <SegmentedControl>
-          <SegmentedControl.Item selected={semester === 1} onClick={() => setSemester(1)}>
-            Semester 1
-          </SegmentedControl.Item>
-          <SegmentedControl.Item selected={semester === 2} onClick={() => setSemester(2)}>
-            Semester 2
-          </SegmentedControl.Item>
-        </SegmentedControl>
-      </div>
+      <SegmentedControl>
+        <SegmentedControl.Item selected={semester === 1} onClick={() => setSemester(1)}>
+          Semester 1
+        </SegmentedControl.Item>
+        <SegmentedControl.Item selected={semester === 2} onClick={() => setSemester(2)}>
+          Semester 2
+        </SegmentedControl.Item>
+      </SegmentedControl>
 
       {/* Course List Section */}
       {loading ? (
@@ -77,14 +74,14 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
               key={course.id}
               before={
                 <Avatar 
-                  size={44} 
+                  size={40} 
                   acronym={course.code ? course.code.replace(/\s+/g, '').slice(0, 4) : 'STAT'} 
                 />
               }
               subhead={course.code}
               subtitle={course.title}
               description={course.description || `${course.credits || 3} Credit Units`}
-              after={<ChevronRight size={18} color="#94A3B8" />}
+              after={<Icon24ChevronRight />}
               onClick={() => onSelectCourse(course)}
             >
               {course.code}
@@ -96,9 +93,9 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
           header="No Courses Available"
           description={`No curriculum records found for Level ${level} Semester ${semester}.`}
         >
-          <BookOpen size={48} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
+          <Icon28Archive />
         </Placeholder>
       )}
-    </div>
+    </List>
   );
 }

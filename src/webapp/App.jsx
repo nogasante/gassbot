@@ -9,7 +9,7 @@ import { SearchTab } from './components/SearchTab';
 import { SavedTab } from './components/SavedTab';
 import { CourseModal } from './components/CourseModal';
 import { RequestModal } from './components/RequestModal';
-import { CheckCircle2, Bookmark, Star } from 'lucide-react';
+import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
 
 export function App() {
   const [platform, setPlatform] = useState('base');
@@ -226,7 +226,7 @@ export function App() {
           <Snackbar
             onClose={() => setSnackbar(null)}
             duration={3000}
-            before={<Star size={18} color="#F59E0B" fill="#F59E0B" />}
+            before={<Icon28Heart style={{ color: '#F59E0B' }} />}
           >
             {snackbar.message}
           </Snackbar>

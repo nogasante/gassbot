@@ -1,10 +1,11 @@
 import React from 'react';
-import { Section, Cell, Button, IconButton, Placeholder, Badge } from '@telegram-apps/telegram-ui';
-import { Star, Download, Trash2 } from 'lucide-react';
+import { List, Section, Cell, Button, IconButton, Placeholder, Badge } from '@telegram-apps/telegram-ui';
+import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
+import { Icon24Close } from '@telegram-apps/telegram-ui/dist/icons/24/close';
 
 export function SavedTab({ savedResources, onToggleBookmark, onNavigateCourses }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 0 24px' }}>
+    <List>
       {savedResources && savedResources.length > 0 ? (
         <Section 
           header={`Pinned Materials (${savedResources.length})`}
@@ -24,7 +25,7 @@ export function SavedTab({ savedResources, onToggleBookmark, onNavigateCourses }
                     onClick={() => onToggleBookmark(res)}
                     title="Remove from saved"
                   >
-                    <Trash2 size={16} color="#DC2626" />
+                    <Icon24Close />
                   </IconButton>
 
                   <Button
@@ -34,7 +35,6 @@ export function SavedTab({ savedResources, onToggleBookmark, onNavigateCourses }
                     href={res.file_url}
                     target="_blank"
                     rel="noreferrer"
-                    before={<Download size={14} />}
                   >
                     Open
                   </Button>
@@ -55,13 +55,9 @@ export function SavedTab({ savedResources, onToggleBookmark, onNavigateCourses }
             </Button>
           }
         >
-          <img 
-            src="/img/nav-saved.png" 
-            alt="Saved" 
-            style={{ width: '64px', height: '64px', objectFit: 'contain', margin: '0 auto 12px' }} 
-          />
+          <Icon28Heart style={{ width: '48px', height: '48px', margin: '0 auto 12px', color: 'var(--tgui--link_color)' }} />
         </Placeholder>
       )}
-    </div>
+    </List>
   );
 }

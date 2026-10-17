@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Section, Cell, SegmentedControl, Spinner, Placeholder, Badge, Button, IconButton, Banner, Chip } from '@telegram-apps/telegram-ui';
-import { Download, Star, Sparkles } from 'lucide-react';
+import { List, Section, Cell, SegmentedControl, Spinner, Placeholder, Badge, Button, IconButton, Banner, Chip } from '@telegram-apps/telegram-ui';
+import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
+import { Icon28Devices } from '@telegram-apps/telegram-ui/dist/icons/28/devices';
 
 const PILLARS = [
-  { key: 'ds_ml', label: 'AI & ML', icon: '/img/track-ds.png', desc: 'Machine Learning, Deep Learning, Statistical Computing' },
-  { key: 'prog_tools', label: 'SOFTWARE', icon: '/img/track-code.png', desc: 'R, Python, SQL, LaTeX & Computational Analytics' },
-  { key: 'career_growth', label: 'CAREERS', icon: '/img/track-career.png', desc: 'Internships, Scholarships, Career Pathways' },
-  { key: 'research_thesis', label: 'RESEARCH', icon: '/img/track-research.png', desc: 'Biostatistics, Actuarial Science, Academic Writing' }
+  { key: 'ds_ml', label: 'AI & ML', desc: 'Machine Learning, Deep Learning, Statistical Computing' },
+  { key: 'prog_tools', label: 'SOFTWARE', desc: 'R, Python, SQL, LaTeX & Computational Analytics' },
+  { key: 'career_growth', label: 'CAREERS', desc: 'Internships, Scholarships, Career Pathways' },
+  { key: 'research_thesis', label: 'RESEARCH', desc: 'Biostatistics, Actuarial Science, Academic Writing' }
 ];
 
 export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookmark }) {
@@ -48,36 +49,31 @@ export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookm
   const currentPillarInfo = PILLARS.find(p => p.key === selectedPillar) || PILLARS[0];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 0 24px' }}>
-      {/* Pillar Selection Tabs */}
-      <div style={{ padding: '0 16px' }}>
-        <SegmentedControl>
-          {PILLARS.map(p => (
-            <SegmentedControl.Item
-              key={p.key}
-              selected={selectedPillar === p.key}
-              onClick={() => setSelectedPillar(p.key)}
-            >
-              {p.label}
-            </SegmentedControl.Item>
-          ))}
-        </SegmentedControl>
-      </div>
+    <List>
+      {/* Pillar Selection Segmented Control */}
+      <SegmentedControl>
+        {PILLARS.map(p => (
+          <SegmentedControl.Item
+            key={p.key}
+            selected={selectedPillar === p.key}
+            onClick={() => setSelectedPillar(p.key)}
+          >
+            {p.label}
+          </SegmentedControl.Item>
+        ))}
+      </SegmentedControl>
 
       {/* Official Telegram UI Banner for Current Pillar */}
-      <div style={{ padding: '4px 16px' }}>
-        <Banner
-          type="section"
-          callout="SKILLS & COMPETENCY"
-          header={currentPillarInfo.label}
-          description={currentPillarInfo.desc}
-          before={<img src={currentPillarInfo.icon} alt={currentPillarInfo.label} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />}
-        />
-      </div>
+      <Banner
+        type="section"
+        callout="SPECIALIZATION PILLAR"
+        header={currentPillarInfo.label}
+        description={currentPillarInfo.desc}
+      />
 
-      {/* Official Telegram UI Chips for Dynamic Subtopics */}
+      {/* Dynamic Subtopics Chips */}
       {subTopics.length > 0 && (
-        <div style={{ padding: '0 16px 4px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '0 16px 8px' }}>
           {subTopics.map(sub => (
             <Chip key={sub.id || sub.key} mode="elevated">
               {sub.title || sub.name}
@@ -111,7 +107,7 @@ export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookm
                         onToggleBookmark(res);
                       }}
                     >
-                      <Star size={16} fill={bookmarked ? '#D97706' : 'none'} color={bookmarked ? '#D97706' : '#64748B'} />
+                      <Icon28Heart style={{ color: bookmarked ? '#E00613' : 'inherit' }} />
                     </IconButton>
 
                     <Button
@@ -121,7 +117,6 @@ export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookm
                       href={res.file_url}
                       target="_blank"
                       rel="noreferrer"
-                      before={<Download size={14} />}
                     >
                       Open
                     </Button>
@@ -138,9 +133,9 @@ export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookm
           header="Curating Content"
           description={`Materials for ${currentPillarInfo.label} are currently being curated by the academic committee.`}
         >
-          <img src={currentPillarInfo.icon} alt="Empty" style={{ width: '56px', height: '56px', margin: '0 auto 12px', opacity: 0.6 }} />
+          <Icon28Devices />
         </Placeholder>
       )}
-    </div>
+    </List>
   );
 }
