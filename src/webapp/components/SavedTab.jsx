@@ -55,7 +55,11 @@ export function SavedTab({ savedResources, onToggleBookmark, onNavigateCourses }
             </Button>
           }
         >
-          <Icon28Heart style={{ width: '48px', height: '48px', margin: '0 auto 12px', color: 'var(--tgui--link_color)' }} />
+          <img 
+            src="/img/nav-saved.png" 
+            alt="Saved Bookmarks" 
+            style={{ width: '80px', height: '80px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
+          />
         </Placeholder>
       )}
     </List>

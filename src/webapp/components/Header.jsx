@@ -8,13 +8,18 @@ export function Header({ user, onRequestOpen }) {
     <Section>
       <Cell
         before={<Avatar size={48} src="/img/logo.png" acronym="GS" />}
-        subhead="STATISTICS FOR DEVELOPMENT"
+        subhead={<span className="header-motto">STATISTICS FOR DEVELOPMENT</span>}
         subtitle={displayName}
         after={
           <Button
             size="s"
             mode="filled"
-            onClick={onRequestOpen}
+            onClick={() => {
+              if (window.Telegram?.WebApp?.HapticFeedback) {
+                window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+              }
+              onRequestOpen();
+            }}
           >
             Request
           </Button>

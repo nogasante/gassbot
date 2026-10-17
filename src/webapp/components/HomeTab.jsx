@@ -13,6 +13,7 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar })
       {/* Official Telegram UI Hero Banner */}
       <Banner
         type="section"
+        before={<Avatar size={48} src="/img/logo.png" acronym="GS" />}
         callout="KNUST STATISTICS • ACADEMIC HUB"
         header="Welcome, Scholar 🎓"
         description="Verified course syllabi, lecture slides, past exam questions, and practical software guides."
@@ -31,28 +32,40 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar })
         </InlineButtons.Item>
       </InlineButtons>
 
-      {/* Official Telegram UI Cards for Competency Pillars */}
+      {/* Official Telegram UI Cards for Competency Pillars with In-App 3D Graphics */}
       <Section header="Featured Specializations" footer="Tap any card to view curated toolkits, software, and guides">
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '0 16px 8px' }}>
-          <Card type="plain" onClick={() => onSelectPillar('ds_ml')} style={{ minWidth: '150px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '4px 16px 12px' }}>
+          <Card type="plain" onClick={() => onSelectPillar('ds_ml')} style={{ minWidth: '150px', flexShrink: 0, cursor: 'pointer' }}>
+            <div className="card-graphic-wrapper">
+              <img src="/img/track-ds.png" alt="AI & ML" />
+            </div>
             <Card.Cell subhead="MACHINE LEARNING" subtitle="PyTorch, AI, modeling">
               AI & ML
             </Card.Cell>
           </Card>
 
-          <Card type="plain" onClick={() => onSelectPillar('prog_tools')} style={{ minWidth: '150px', flexShrink: 0 }}>
+          <Card type="plain" onClick={() => onSelectPillar('prog_tools')} style={{ minWidth: '150px', flexShrink: 0, cursor: 'pointer' }}>
+            <div className="card-graphic-wrapper">
+              <img src="/img/track-code.png" alt="Software" />
+            </div>
             <Card.Cell subhead="COMPUTATION" subtitle="R, Python, SQL, LaTeX">
               SOFTWARE
             </Card.Cell>
           </Card>
 
-          <Card type="plain" onClick={() => onSelectPillar('career_growth')} style={{ minWidth: '150px', flexShrink: 0 }}>
+          <Card type="plain" onClick={() => onSelectPillar('career_growth')} style={{ minWidth: '150px', flexShrink: 0, cursor: 'pointer' }}>
+            <div className="card-graphic-wrapper">
+              <img src="/img/track-career.png" alt="Careers" />
+            </div>
             <Card.Cell subhead="INDUSTRY" subtitle="Internships & resumes">
               CAREERS
             </Card.Cell>
           </Card>
 
-          <Card type="plain" onClick={() => onSelectPillar('research_thesis')} style={{ minWidth: '150px', flexShrink: 0 }}>
+          <Card type="plain" onClick={() => onSelectPillar('research_thesis')} style={{ minWidth: '150px', flexShrink: 0, cursor: 'pointer' }}>
+            <div className="card-graphic-wrapper">
+              <img src="/img/track-research.png" alt="Research" />
+            </div>
             <Card.Cell subhead="METHODOLOGY" subtitle="Biostats & Actuarial">
               RESEARCH
             </Card.Cell>
@@ -64,6 +77,7 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar })
       {latestAnnouncement && (
         <Banner
           type="section"
+          className="announcement-banner"
           callout="OFFICIAL ANNOUNCEMENT"
           header={latestAnnouncement.title}
           description={latestAnnouncement.content}

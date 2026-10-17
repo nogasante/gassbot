@@ -35,26 +35,62 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
     <List>
       {/* Level Segmented Switcher */}
       <SegmentedControl>
-        <SegmentedControl.Item selected={level === 100} onClick={() => setLevel(100)}>
+        <SegmentedControl.Item 
+          selected={level === 100} 
+          onClick={() => {
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
+            setLevel(100);
+          }}
+        >
           L100
         </SegmentedControl.Item>
-        <SegmentedControl.Item selected={level === 200} onClick={() => setLevel(200)}>
+        <SegmentedControl.Item 
+          selected={level === 200} 
+          onClick={() => {
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
+            setLevel(200);
+          }}
+        >
           L200
         </SegmentedControl.Item>
-        <SegmentedControl.Item selected={level === 300} onClick={() => setLevel(300)}>
+        <SegmentedControl.Item 
+          selected={level === 300} 
+          onClick={() => {
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
+            setLevel(300);
+          }}
+        >
           L300
         </SegmentedControl.Item>
-        <SegmentedControl.Item selected={level === 400} onClick={() => setLevel(400)}>
+        <SegmentedControl.Item 
+          selected={level === 400} 
+          onClick={() => {
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
+            setLevel(400);
+          }}
+        >
           L400
         </SegmentedControl.Item>
       </SegmentedControl>
 
       {/* Semester Segmented Switcher */}
       <SegmentedControl>
-        <SegmentedControl.Item selected={semester === 1} onClick={() => setSemester(1)}>
+        <SegmentedControl.Item 
+          selected={semester === 1} 
+          onClick={() => {
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
+            setSemester(1);
+          }}
+        >
           Semester 1
         </SegmentedControl.Item>
-        <SegmentedControl.Item selected={semester === 2} onClick={() => setSemester(2)}>
+        <SegmentedControl.Item 
+          selected={semester === 2} 
+          onClick={() => {
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
+            setSemester(2);
+          }}
+        >
           Semester 2
         </SegmentedControl.Item>
       </SegmentedControl>
@@ -93,7 +129,11 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
           header="No Courses Available"
           description={`No curriculum records found for Level ${level} Semester ${semester}.`}
         >
-          <Icon28Archive />
+          <img 
+            src="/img/nav-courses.png" 
+            alt="Curriculum" 
+            style={{ width: '80px', height: '80px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
+          />
         </Placeholder>
       )}
     </List>

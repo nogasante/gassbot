@@ -56,7 +56,10 @@ export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookm
           <SegmentedControl.Item
             key={p.key}
             selected={selectedPillar === p.key}
-            onClick={() => setSelectedPillar(p.key)}
+            onClick={() => {
+              if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged();
+              setSelectedPillar(p.key);
+            }}
           >
             {p.label}
           </SegmentedControl.Item>
@@ -133,7 +136,11 @@ export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookm
           header="Curating Content"
           description={`Materials for ${currentPillarInfo.label} are currently being curated by the academic committee.`}
         >
-          <Icon28Devices />
+          <img 
+            src="/img/nav-skills.png" 
+            alt="Skills" 
+            style={{ width: '80px', height: '80px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
+          />
         </Placeholder>
       )}
     </List>

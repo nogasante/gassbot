@@ -36,16 +36,25 @@ export function RequestModal({ open, onClose, user, onSuccess }) {
 
       const data = await res.json();
       if (data.success) {
+        if (window.Telegram?.WebApp?.HapticFeedback) {
+          window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        }
         onSuccess('Request submitted! GASS academic team will review it.');
         setTitle('');
         setCourseCode('');
         setNotes('');
         onClose();
       } else {
+        if (window.Telegram?.WebApp?.HapticFeedback) {
+          window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+        }
         setError(data.error || 'Failed to submit request. Please try again.');
       }
     } catch (err) {
       console.error('Request error', err);
+      if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+      }
       setError('Network error submitting request. Please try again.');
     } finally {
       setSubmitting(false);

@@ -12,7 +12,6 @@ import { RequestModal } from './components/RequestModal';
 import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
 
 export function App() {
-  const [platform, setPlatform] = useState('base');
   const [user, setUser] = useState({ id: 8603471859, first_name: 'Scholar', username: 'scholar' });
   const [activeTab, setActiveTab] = useState('home');
   const [targetLevel, setTargetLevel] = useState(100);
@@ -33,16 +32,18 @@ export function App() {
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
-      
-      const isIos = tg.platform === 'ios' || tg.platform === 'macos';
-      setPlatform(isIos ? 'ios' : 'base');
 
       if (tg.initDataUnsafe?.user) {
         setUser(tg.initDataUnsafe.user);
       }
 
-      tg.setHeaderColor('#FFFFFF');
-      tg.setBackgroundColor('#F8FAFC');
+      // Allow Telegram client to set native header & background matching the user's theme
+      const applyTheme = () => {
+        if (tg.setHeaderColor) tg.setHeaderColor('secondary_bg_color');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('secondary_bg_color');
+      };
+      applyTheme();
+      tg.onEvent('themeChanged', applyTheme);
     }
 
     // Load Local Bookmarks Cache immediately (0ms instant render)
@@ -57,6 +58,40 @@ export function App() {
 
     fetchInitialData();
   }, []);
+
+  // Native Telegram BackButton integration for sheets and subtabs
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.BackButton) return;
+
+    const hasModal = Boolean(selectedCourse || requestModalOpen);
+    const isSubTab = activeTab !== 'home';
+
+    if (hasModal) {
+      tg.BackButton.show();
+      const onBackModal = () => {
+        setSelectedCourse(null);
+        setRequestModalOpen(false);
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      };
+      tg.BackButton.onClick(onBackModal);
+      return () => {
+        tg.BackButton.offClick(onBackModal);
+      };
+    } else if (isSubTab) {
+      tg.BackButton.show();
+      const onBackHome = () => {
+        setActiveTab('home');
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      };
+      tg.BackButton.onClick(onBackHome);
+      return () => {
+        tg.BackButton.offClick(onBackHome);
+      };
+    } else {
+      tg.BackButton.hide();
+    }
+  }, [selectedCourse, requestModalOpen, activeTab]);
 
   // Sync Bookmarks from Server
   const fetchInitialData = async () => {
@@ -131,22 +166,28 @@ export function App() {
   const handleTabChange = (tabKey) => {
     setActiveTab(tabKey);
     if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+      window.Telegram.WebApp.HapticFeedback.selectionChanged();
     }
   };
 
   const handleSelectLevel = (lvl) => {
     setTargetLevel(lvl);
     setActiveTab('courses');
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
   };
 
   const handleSelectPillar = (pillarKey) => {
     setTargetPillar(pillarKey);
     setActiveTab('beyond');
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
   };
 
   return (
-    <AppRoot platform={platform} appearance="light">
+    <AppRoot>
       <div className="app-container">
         {/* Top Header */}
         <Header 

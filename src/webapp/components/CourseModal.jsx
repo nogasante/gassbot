@@ -101,7 +101,11 @@ export function CourseModal({ course, open, onClose, isBookmarked, onToggleBookm
               header="No Uploaded Materials"
               description="No slides or past examination papers have been uploaded for this course yet."
             >
-              <Icon28Archive />
+              <img 
+                src="/img/nav-courses.png" 
+                alt="Materials" 
+                style={{ width: '64px', height: '64px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
+              />
             </Placeholder>
           )}
 

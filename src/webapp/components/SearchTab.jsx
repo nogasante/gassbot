@@ -120,14 +120,22 @@ export function SearchTab({ isBookmarked, onToggleBookmark }) {
           header="No Results Found"
           description={`We couldn't find any resources matching "${query}". Try searching for course codes like "STAT 151" or topics like "probability".`}
         >
-          <Icon24Search style={{ width: '48px', height: '48px', margin: '0 auto 12px', color: 'var(--tgui--hint_color)' }} />
+          <img 
+            src="/img/nav-search.png" 
+            alt="No Results" 
+            style={{ width: '64px', height: '64px', objectFit: 'contain', opacity: 0.6, display: 'block', margin: '0 auto 8px' }} 
+          />
         </Placeholder>
       ) : (
         <Placeholder
           header="Instant Library Search"
           description="Type any course code, topic, software, or document name to find verified lecture notes, exam papers, and guides."
         >
-          <Icon24Search style={{ width: '48px', height: '48px', margin: '0 auto 12px', color: 'var(--tgui--link_color)' }} />
+          <img 
+            src="/img/nav-search.png" 
+            alt="Search" 
+            style={{ width: '80px', height: '80px', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} 
+          />
         </Placeholder>
       )}
     </List>
