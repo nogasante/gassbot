@@ -11,7 +11,7 @@ export function Navbar({ activeTab, onTabChange }) {
   ];
 
   return (
-    <Tabbar style={{ zIndex: 99, background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)' }}>
+    <Tabbar style={{ zIndex: 99 }}>
       {tabs.map((tab) => {
         const isSelected = activeTab === tab.key;
         return (
@@ -20,14 +20,14 @@ export function Navbar({ activeTab, onTabChange }) {
             selected={isSelected}
             text={tab.label}
             onClick={() => onTabChange(tab.key)}
-            className={isSelected ? 'tabbar-item-active' : ''}
+            className={isSelected ? 'tab-active' : ''}
           >
             <img
               src={tab.icon}
               alt={tab.label}
-              className="tab-3d-icon"
+              className="tab-icon-img"
               style={{
-                filter: isSelected ? 'drop-shadow(0 2px 6px rgba(11, 83, 111, 0.4))' : 'grayscale(30%) opacity(0.8)'
+                filter: isSelected ? 'drop-shadow(0 2px 6px rgba(11, 83, 111, 0.4))' : 'grayscale(35%) opacity(0.75)'
               }}
             />
           </Tabbar.Item>

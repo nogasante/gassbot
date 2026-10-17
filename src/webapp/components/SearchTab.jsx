@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Section, Cell, Input, Spinner, Placeholder, Badge } from '@telegram-apps/telegram-ui';
-import { Search as SearchIcon, FileText, BookOpen, Download, Star, X } from 'lucide-react';
+import { Section, Cell, Input, Spinner, Placeholder, Badge, Button, IconButton } from '@telegram-apps/telegram-ui';
+import { Search as SearchIcon, Download, Star, X } from 'lucide-react';
 
-export function SearchTab({ onSelectCourse, isBookmarked, onToggleBookmark }) {
+export function SearchTab({ isBookmarked, onToggleBookmark }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,12 +39,12 @@ export function SearchTab({ onSelectCourse, isBookmarked, onToggleBookmark }) {
   };
 
   return (
-    <div style={{ paddingBottom: '20px' }}>
-      {/* Search Input Bar */}
-      <div style={{ padding: '12px 16px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 0 24px' }}>
+      {/* Telegram UI Search Input Field */}
+      <div style={{ padding: '0 16px' }}>
         <Input
-          header="Global Academic Search"
-          placeholder="Search by code (e.g. STAT 151), topic, or keyword..."
+          header="Search Academic Database"
+          placeholder="Course code (e.g. STAT 151), topic, or keyword..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           after={
@@ -64,60 +64,43 @@ export function SearchTab({ onSelectCourse, isBookmarked, onToggleBookmark }) {
 
       {/* Results Section */}
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
           <Spinner size="l" />
         </div>
       ) : query && results.length > 0 ? (
-        <Section header={`Search Results (${results.length})`}>
+        <Section header={`Search Results (${results.length})`} footer="Tap Open to access document or Star to save for offline revision">
           {results.map((res) => {
             const bookmarked = isBookmarked(res.id);
             return (
               <Cell
                 key={res.id}
-                before={<FileText size={22} color="#0B536F" />}
-                subhead={(res.resource_type || res.type_name || 'Document').toUpperCase()}
+                before={<Badge mode="primary">{(res.resource_type || res.type_name || 'DOC').toUpperCase()}</Badge>}
+                subhead={res.resource_type || 'Document'}
                 subtitle={res.description || res.course_title || 'Verified GASS academic document'}
                 after={
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button
+                    <IconButton
+                      size="s"
+                      mode={bookmarked ? 'bezeled' : 'gray'}
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleBookmark(res);
                       }}
-                      style={{
-                        background: bookmarked ? '#FEF3C7' : '#F1F5F9',
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '6px 8px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: bookmarked ? '#D97706' : '#64748B'
-                      }}
                     >
-                      <Star size={16} fill={bookmarked ? '#D97706' : 'none'} />
-                    </button>
+                      <Star size={16} fill={bookmarked ? '#D97706' : 'none'} color={bookmarked ? '#D97706' : '#64748B'} />
+                    </IconButton>
 
-                    <a
+                    <Button
+                      size="s"
+                      mode="filled"
+                      Component="a"
                       href={res.file_url}
                       target="_blank"
                       rel="noreferrer"
-                      style={{
-                        background: '#0B536F',
-                        color: '#FFFFFF',
-                        borderRadius: '8px',
-                        padding: '6px 12px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        textDecoration: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}
+                      before={<Download size={14} />}
                     >
-                      <Download size={14} />
                       Open
-                    </a>
+                    </Button>
                   </div>
                 }
               >
@@ -129,7 +112,7 @@ export function SearchTab({ onSelectCourse, isBookmarked, onToggleBookmark }) {
       ) : query ? (
         <Placeholder
           header="No Results Found"
-          description={`We couldn't find any resources matching "${query}". Try searching for course codes like "MATH 151" or topics like "calculus".`}
+          description={`We couldn't find any resources matching "${query}". Try searching for course codes like "STAT 151" or topics like "probability".`}
         >
           <SearchIcon size={48} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
         </Placeholder>

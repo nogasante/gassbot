@@ -1,10 +1,10 @@
 import React from 'react';
-import { Section, Cell, Button, Placeholder, Badge } from '@telegram-apps/telegram-ui';
-import { Bookmark, Star, Download, Trash2, BookOpen } from 'lucide-react';
+import { Section, Cell, Button, IconButton, Placeholder, Badge } from '@telegram-apps/telegram-ui';
+import { Star, Download, Trash2 } from 'lucide-react';
 
 export function SavedTab({ savedResources, onToggleBookmark, onNavigateCourses }) {
   return (
-    <div style={{ paddingBottom: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 0 24px' }}>
       {savedResources && savedResources.length > 0 ? (
         <Section 
           header={`Pinned Materials (${savedResources.length})`}
@@ -13,61 +13,31 @@ export function SavedTab({ savedResources, onToggleBookmark, onNavigateCourses }
           {savedResources.map((res) => (
             <Cell
               key={res.id}
-              before={
-                <div style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '10px',
-                  background: '#FEF3C7',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#D97706'
-                }}>
-                  <Star size={20} fill="#D97706" />
-                </div>
-              }
-              subhead={(res.type_name || res.resource_type || 'Saved').toUpperCase()}
-              subtitle={res.description || res.course_title || 'Verified GASS resource'}
+              before={<Badge mode="primary">{(res.type_name || res.resource_type || 'SAVED').toUpperCase()}</Badge>}
+              subhead={res.resource_type || 'Saved Resource'}
+              subtitle={res.description || res.course_title || 'Verified GASS academic document'}
               after={
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <button
+                  <IconButton
+                    size="s"
+                    mode="gray"
                     onClick={() => onToggleBookmark(res)}
-                    style={{
-                      background: '#FEE2E2',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '6px 8px',
-                      cursor: 'pointer',
-                      color: '#DC2626',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
-                    title="Remove from bookmarks"
+                    title="Remove from saved"
                   >
-                    <Trash2 size={16} />
-                  </button>
+                    <Trash2 size={16} color="#DC2626" />
+                  </IconButton>
 
-                  <a
+                  <Button
+                    size="s"
+                    mode="filled"
+                    Component="a"
                     href={res.file_url}
                     target="_blank"
                     rel="noreferrer"
-                    style={{
-                      background: '#0B536F',
-                      color: '#FFFFFF',
-                      borderRadius: '8px',
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      textDecoration: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
+                    before={<Download size={14} />}
                   >
-                    <Download size={14} />
                     Open
-                  </a>
+                  </Button>
                 </div>
               }
             >

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Section, Cell, SegmentedControl, Spinner, Placeholder, Badge } from '@telegram-apps/telegram-ui';
-import { ChevronRight, BookOpen, AlertCircle } from 'lucide-react';
+import { Section, Cell, SegmentedControl, Spinner, Placeholder, Avatar, Badge } from '@telegram-apps/telegram-ui';
+import { ChevronRight, BookOpen } from 'lucide-react';
 
 export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
   const [level, setLevel] = useState(initialLevel);
@@ -31,9 +31,9 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
   };
 
   return (
-    <div style={{ paddingBottom: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 0 24px' }}>
       {/* Level Segmented Switcher */}
-      <div style={{ padding: '12px 16px 8px' }}>
+      <div style={{ padding: '0 16px' }}>
         <SegmentedControl>
           <SegmentedControl.Item selected={level === 100} onClick={() => setLevel(100)}>
             L100
@@ -51,7 +51,7 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
       </div>
 
       {/* Semester Segmented Switcher */}
-      <div style={{ padding: '0 16px 12px' }}>
+      <div style={{ padding: '0 16px 8px' }}>
         <SegmentedControl>
           <SegmentedControl.Item selected={semester === 1} onClick={() => setSemester(1)}>
             Semester 1
@@ -64,36 +64,26 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
 
       {/* Course List Section */}
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
           <Spinner size="l" />
         </div>
       ) : courses.length > 0 ? (
-        <Section header={`Level ${level} • Semester ${semester} Courses`}>
+        <Section 
+          header={`Level ${level} • Semester ${semester} Curriculum (${courses.length})`}
+          footer="Tap any course to explore lecture notes, slides, and past examination papers."
+        >
           {courses.map((course) => (
             <Cell
               key={course.id}
               before={
-                <div style={{ 
-                  width: '42px', 
-                  height: '42px', 
-                  borderRadius: '10px', 
-                  background: '#F1F5F9', 
-                  border: '1px solid #E2E8F0',
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  fontWeight: 800,
-                  fontSize: '11px',
-                  color: '#0B536F'
-                }}>
-                  <span>{course.credits || 3}</span>
-                  <span style={{ fontSize: '8px', color: '#64748B' }}>CR</span>
-                </div>
+                <Avatar 
+                  size={44} 
+                  acronym={course.code ? course.code.replace(/\s+/g, '').slice(0, 4) : 'STAT'} 
+                />
               }
               subhead={course.code}
               subtitle={course.title}
-              description={course.description || 'Access syllabus, lecture slides, past questions and cheat sheets'}
+              description={course.description || `${course.credits || 3} Credit Units`}
               after={<ChevronRight size={18} color="#94A3B8" />}
               onClick={() => onSelectCourse(course)}
             >
@@ -103,7 +93,7 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
         </Section>
       ) : (
         <Placeholder
-          header="No Courses Found"
+          header="No Courses Available"
           description={`No curriculum records found for Level ${level} Semester ${semester}.`}
         >
           <BookOpen size={48} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
