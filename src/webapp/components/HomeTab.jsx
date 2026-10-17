@@ -45,6 +45,15 @@ function IconChevronRight() {
   );
 }
 
+function IconMegaphone() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
 export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar, onNavigateTab, onRequestOpen }) {
   const latestAnnouncement = announcements && announcements.length > 0 ? announcements[0] : null;
 
@@ -161,14 +170,20 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar, o
         </div>
       </section>
 
-      {/* 4. Latest Announcement (if present) */}
+      {/* 4. Official Departmental Announcement Card */}
       {latestAnnouncement && (
-        <section className="walt-card-group" style={{ marginBottom: '16px' }}>
-          <div className="walt-notice-cell">
-            <div className="walt-notice-tag">ANNOUNCEMENT</div>
-            <div className="walt-notice-title">{latestAnnouncement.title}</div>
-            <div className="walt-notice-body">{latestAnnouncement.content}</div>
+        <section className="walt-announcement-card">
+          <div className="walt-announcement-header">
+            <div className="walt-announcement-badge-group">
+              <div className="walt-announcement-icon-wrap">
+                <IconMegaphone />
+              </div>
+              <span className="walt-announcement-pill">OFFICIAL NOTICE</span>
+            </div>
+            <span className="walt-announcement-board">Executive Board</span>
           </div>
+          <h3 className="walt-announcement-title">{latestAnnouncement.title}</h3>
+          <p className="walt-announcement-body">{latestAnnouncement.content}</p>
         </section>
       )}
 

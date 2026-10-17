@@ -400,6 +400,82 @@ body {
 }
 
 /* ==========================================================================
+   4B. Official Departmental Announcement Card
+   ========================================================================== */
+.walt-announcement-card {
+  background: var(--tgui--section_bg_color, #17212b);
+  border-radius: 18px;
+  margin: 0 16px 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 4px solid var(--gass-red);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.walt-announcement-card:active {
+  transform: scale(0.99);
+}
+
+.walt-announcement-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.walt-announcement-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.walt-announcement-icon-wrap {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(224, 6, 19, 0.15);
+  color: #FF5252;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.walt-announcement-pill {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #FF5252;
+  background: rgba(224, 6, 19, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(224, 6, 19, 0.25);
+}
+
+.walt-announcement-board {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--tgui--hint_color, #7f91a4);
+}
+
+.walt-announcement-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--tgui--text_color, #FFFFFF);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.2px;
+  line-height: 1.35;
+}
+
+.walt-announcement-body {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--tgui--hint_color, #8e9fae);
+  margin: 0;
+}
+
+/* ==========================================================================
    5. Walt Grouped Card Lists (Crypto List in Image 1)
    ========================================================================== */
 .walt-section-header-row {
