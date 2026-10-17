@@ -147,7 +147,7 @@ export function App() {
 
   return (
     <AppRoot platform={platform} appearance="light">
-      <div className="app-root-container">
+      <div className="app-container">
         {/* Top Header */}
         <Header 
           user={user} 

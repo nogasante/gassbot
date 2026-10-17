@@ -1,33 +1,342 @@
 @import '@telegram-apps/telegram-ui/dist/styles.css';
 
-:root {
-  --gass-teal: #0B536F;
-  --gass-red: #E00613;
-  --gass-blue: #4A90E2;
-  --gass-gold: #F59E0B;
+/* ==========================================================================
+   GASS-KNUST High-Contrast Theme System for Telegram UI
+   Guarantees crisp contrast, clean white cards, and eliminates washed-out text
+   ========================================================================== */
 
-  /* Official Telegram UI Theme Variables */
-  --tgui--link_color: #0B536F;
-  --tgui--button_color: #0B536F;
-  --tgui--button_text_color: #FFFFFF;
-  --tgui--accent_text_color: #0B536F;
-  --tgui--bg_color: #F8FAFC;
-  --tgui--section_bg_color: #FFFFFF;
-  --tgui--secondary_bg_color: #F1F5F9;
-  --tgui--text_color: #0F172A;
-  --tgui--subtitle_text_color: #475569;
-  --tgui--hint_color: #64748B;
-  --tgui--outline: rgba(15, 23, 42, 0.08);
-  --tgui--divider: rgba(15, 23, 42, 0.06);
+:root,
+body,
+#root,
+.tgui-6a12827a138e8827,
+.tgui-56dbb42c1dbd5e2b,
+.tgui-865b921add8ee075,
+[class*="tgui-"] {
+  /* GASS Official Brand Palette */
+  --gass-teal: #0B536F !important;
+  --gass-red: #E00613 !important;
+  --gass-blue: #4A90E2 !important;
+  --gass-gold: #F59E0B !important;
+
+  /* Global Telegram Environment Colors (Overriding Telegram dark/light leaks) */
+  --tg-theme-bg-color: #F8FAFC !important;
+  --tg-theme-secondary-bg-color: #F1F5F9 !important;
+  --tg-theme-section-bg-color: #FFFFFF !important;
+  --tg-theme-header-bg-color: #FFFFFF !important;
+  --tg-theme-text-color: #0F172A !important;
+  --tg-theme-hint-color: #64748B !important;
+  --tg-theme-link-color: #0B536F !important;
+  --tg-theme-button-color: #0B536F !important;
+  --tg-theme-button-text-color: #FFFFFF !important;
+  --tg-theme-accent-text-color: #0B536F !important;
+  --tg-theme-subtitle-text-color: #334155 !important;
+  --tg-theme-section-header-text-color: #475569 !important;
+
+  /* Telegram UI Component Colors */
+  --tgui--bg_color: #F8FAFC !important;
+  --tgui--secondary_bg_color: #F1F5F9 !important;
+  --tgui--section_bg_color: #FFFFFF !important;
+  --tgui--card_bg_color: #FFFFFF !important;
+  --tgui--header_bg_color: #FFFFFF !important;
+  --tgui--surface_primary: #FFFFFF !important;
+  --tgui--surface_dark: rgba(15, 23, 42, 0.9) !important;
+  --tgui--tertiary_bg_color: #E2E8F0 !important;
+  --tgui--quartenary_bg_color: #FFFFFF !important;
+  --tgui--text_color: #0F172A !important;
+  --tgui--subtitle_text_color: #334155 !important;
+  --tgui--hint_color: #64748B !important;
+  --tgui--secondary_hint_color: #94A3B8 !important;
+  --tgui--section_header_text_color: #475569 !important;
+  --tgui--link_color: #0B536F !important;
+  --tgui--button_color: #0B536F !important;
+  --tgui--button_text_color: #FFFFFF !important;
+  --tgui--accent_text_color: #0B536F !important;
+  --tgui--destructive_text_color: #E00613 !important;
+  --tgui--secondary_fill: rgba(11, 83, 111, 0.08) !important;
+  --tgui--plain_background: #F1F5F9 !important;
+  --tgui--plain_foreground: #0F172A !important;
+  --tgui--segmented_control_active_bg: #FFFFFF !important;
+  --tgui--outline: #E2E8F0 !important;
+  --tgui--divider: #F1F5F9 !important;
+  --tgui--white: #FFFFFF !important;
+  --tgui--black: #0F172A !important;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--tgui--bg_color);
-  color: var(--tgui--text_color);
-  font-family: var(--tgui--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+}
+
+/* Page wrapper ensuring bottom tabbar does not clip content */
+.app-container,
+.app-root-container {
+  min-height: 100vh;
+  padding-bottom: 96px;
+  background-color: #F8FAFC !important;
+  box-sizing: border-box;
+}
+
+/* Base Platform Section Cards (Android / Desktop) */
+.tgui-8e15431b81f6601e .tgui-db9be63c4fecf79b {
+  background: #FFFFFF !important;
+  border-radius: 16px !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  overflow: hidden !important;
+}
+
+.tgui-8e15431b81f6601e .tgui-4b78bed6e925088e {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* iOS Platform Section Cards */
+.tgui-97eca24324122dbc .tgui-4b78bed6e925088e {
+  background: #FFFFFF !important;
+  border-radius: 16px !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  overflow: hidden !important;
+}
+
+/* Section Header Typography */
+.tgui-67471b69da3e3062 {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+}
+
+/* Section Footer Typography */
+.tgui-8ebba379083b615a {
+  color: #64748B !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+/* Banner Component Polish */
+.tgui-c3d21871b48e0ba3 {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Banner Callout Accent */
+.tgui-a04b768cea14d789 span:first-child {
+  color: #E00613 !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* Card Component Polish */
+.tgui-dbf261f4b3046bb3 {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+.tgui-80c6a0ba7b3c11fd {
+  background: #FFFFFF !important;
+}
+
+/* Card Titles */
+.tgui-27c5a061c5f35c04 {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+
+.tgui-422c21c917cc0873 {
+  color: #64748B !important;
+  font-size: 12px !important;
+}
+
+/* List Cells Typography & Contrast */
+.tgui-b8dfba0b5c3d054c {
+  background: #FFFFFF !important;
+}
+
+/* Subhead (e.g. course code or category) */
+.tgui-46dd90b57ffed25f {
+  color: #0B536F !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Cell Main Title */
+.tgui-1c6d7865a76a19bc {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+}
+
+/* Cell Subtitle */
+.tgui-d528ef65a8b76273 {
+  color: #334155 !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+}
+
+/* Cell Hint */
+.tgui-bb909928b48f948b {
+  color: #64748B !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+}
+
+/* Cell Description */
+.tgui-fc059ed3ac5799a6 {
+  color: #64748B !important;
+  font-size: 12px !important;
+}
+
+/* Segmented Control Track & Active Pill */
+.tgui-71259e3311d7116e {
+  background: #E2E8F0 !important;
+  border-radius: 12px !important;
+  padding: 3px !important;
+}
+
+.tgui-31f461ccfea23ec3 {
+  background: #FFFFFF !important;
+  border-radius: 9px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1) !important;
+}
+
+.tgui-bbfb272d22eb23e8 {
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
+.tgui-bbfb272d22eb23e8[aria-selected="true"] {
+  color: #0B536F !important;
+  font-weight: 700 !important;
+}
+
+/* Inline Buttons Styling */
+.tgui-c5545e0bc6105e48 {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 12px !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+}
+
+.tgui-c5545e0bc6105e48 svg {
+  color: #0B536F !important;
+}
+
+.tgui-c0c9bf3b1a53a8a4 {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+/* Chips Component */
+.tgui-6372c64c79ad2959 {
+  background: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0B536F !important;
+  font-weight: 600 !important;
+}
+
+/* Custom Resource Tag Chip */
+.resource-chip {
+  padding: 2px 8px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  border-radius: 6px !important;
+  background: #F1F5F9 !important;
+  color: #0B536F !important;
+  border: 1px solid #CBD5E1 !important;
+}
+
+/* Avatars Tint */
+.tgui-30d8642662534eb5 {
+  background: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0B536F !important;
+  font-weight: 800 !important;
+}
+
+/* Tabbar Component */
+.tgui-53cb2ebed0c3b08f {
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-top: 1px solid #E2E8F0 !important;
+  box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.04) !important;
+}
+
+.tgui-64cd0db020a9bacf {
+  color: #94A3B8 !important;
+}
+
+.tgui-e6658d0b8927f95e {
+  color: #0B536F !important;
+  font-weight: 700 !important;
+}
+
+/* Modals & Drawers */
+.tgui-cc76354712c6e8d9 {
+  background: #FFFFFF !important;
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+}
+
+.tgui-f67c8fb3553eee55:before {
+  background: #CBD5E1 !important;
+}
+
+/* Form Inputs, Selects & Textareas */
+input,
+select,
+textarea {
+  color: #0F172A !important;
+  background-color: transparent !important;
+}
+
+select option {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748B !important;
+  opacity: 1 !important;
+}
+
+.tgui-0f5050defacbf813 {
+  background: #FFFFFF !important;
+  border-radius: 12px !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.tgui-0f5050defacbf813:focus-within {
+  border-color: #0B536F !important;
+  box-shadow: 0 0 0 3px rgba(11, 83, 111, 0.12) !important;
+}
+
+/* Placeholder Empty States Polish */
+.tgui-e5c3a5b87f8b1f46 {
+  background: #FFFFFF !important;
+  border-radius: 16px !important;
+  border: 1px dashed #CBD5E1 !important;
+  margin: 16px !important;
+  padding: 36px 20px !important;
 }

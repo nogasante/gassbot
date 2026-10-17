@@ -94,7 +94,7 @@ export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookm
             return (
               <Cell
                 key={res.id}
-                before={<Badge mode="secondary">{(res.type_name || res.resource_type || 'TOOL').toUpperCase()}</Badge>}
+                before={<Chip mode="mono" className="resource-chip">{(res.type_name || res.resource_type || 'TOOL').toUpperCase()}</Chip>}
                 subhead={res.resource_type || 'Resource'}
                 subtitle={res.description || 'Verified GASS technical toolkit'}
                 after={
@@ -107,7 +107,7 @@ export function BeyondTab({ initialPillar = 'ds_ml', isBookmarked, onToggleBookm
                         onToggleBookmark(res);
                       }}
                     >
-                      <Icon28Heart style={{ color: bookmarked ? '#E00613' : 'inherit' }} />
+                      <Icon28Heart style={{ color: bookmarked ? '#E00613' : '#94A3B8' }} />
                     </IconButton>
 
                     <Button

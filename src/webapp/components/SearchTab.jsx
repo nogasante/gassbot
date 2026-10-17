@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { List, Section, Cell, Input, Spinner, Placeholder, Badge, Button, IconButton } from '@telegram-apps/telegram-ui';
+import { List, Section, Cell, Input, Spinner, Placeholder, Chip, Button, IconButton } from '@telegram-apps/telegram-ui';
 import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
 import { Icon24Close } from '@telegram-apps/telegram-ui/dist/icons/24/close';
 
@@ -81,7 +81,7 @@ export function SearchTab({ isBookmarked, onToggleBookmark }) {
             return (
               <Cell
                 key={res.id}
-                before={<Badge mode="primary">{(res.resource_type || res.type_name || 'DOC').toUpperCase()}</Badge>}
+                before={<Chip mode="mono" className="resource-chip">{(res.resource_type || res.type_name || 'DOC').toUpperCase()}</Chip>}
                 subhead={res.resource_type || 'Document'}
                 subtitle={res.description || res.course_title || 'Verified GASS academic document'}
                 after={
@@ -94,7 +94,7 @@ export function SearchTab({ isBookmarked, onToggleBookmark }) {
                         onToggleBookmark(res);
                       }}
                     >
-                      <Icon28Heart style={{ color: bookmarked ? '#E00613' : 'inherit' }} />
+                      <Icon28Heart style={{ color: bookmarked ? '#E00613' : '#94A3B8' }} />
                     </IconButton>
 
                     <Button

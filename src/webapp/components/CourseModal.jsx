@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, List, Section, Cell, Button, IconButton, Badge, Spinner, Placeholder, Avatar } from '@telegram-apps/telegram-ui';
+import { Modal, List, Section, Cell, Button, IconButton, Chip, Spinner, Placeholder, Avatar } from '@telegram-apps/telegram-ui';
 import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
 import { Icon28Archive } from '@telegram-apps/telegram-ui/dist/icons/28/archive';
 
@@ -61,7 +61,7 @@ export function CourseModal({ course, open, onClose, isBookmarked, onToggleBookm
                 return (
                   <Cell
                     key={res.id}
-                    before={<Badge mode="primary">{(res.type_name || res.resource_type || 'DOC').toUpperCase()}</Badge>}
+                    before={<Chip mode="mono" className="resource-chip">{(res.type_name || res.resource_type || 'DOC').toUpperCase()}</Chip>}
                     subhead={res.resource_type || 'Material'}
                     subtitle={res.description || 'Verified GASS academic file'}
                     after={
@@ -74,7 +74,7 @@ export function CourseModal({ course, open, onClose, isBookmarked, onToggleBookm
                             onToggleBookmark(res);
                           }}
                         >
-                          <Icon28Heart style={{ color: bookmarked ? '#E00613' : 'inherit' }} />
+                          <Icon28Heart style={{ color: bookmarked ? '#E00613' : '#94A3B8' }} />
                         </IconButton>
 
                         <Button

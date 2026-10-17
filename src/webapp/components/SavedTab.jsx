@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, Section, Cell, Button, IconButton, Placeholder, Badge } from '@telegram-apps/telegram-ui';
+import { List, Section, Cell, Button, IconButton, Placeholder, Chip } from '@telegram-apps/telegram-ui';
 import { Icon28Heart } from '@telegram-apps/telegram-ui/dist/icons/28/heart';
 import { Icon24Close } from '@telegram-apps/telegram-ui/dist/icons/24/close';
 
@@ -14,7 +14,7 @@ export function SavedTab({ savedResources, onToggleBookmark, onNavigateCourses }
           {savedResources.map((res) => (
             <Cell
               key={res.id}
-              before={<Badge mode="primary">{(res.type_name || res.resource_type || 'SAVED').toUpperCase()}</Badge>}
+              before={<Chip mode="mono" className="resource-chip">{(res.type_name || res.resource_type || 'SAVED').toUpperCase()}</Chip>}
               subhead={res.resource_type || 'Saved Resource'}
               subtitle={res.description || res.course_title || 'Verified GASS academic document'}
               after={
@@ -25,7 +25,7 @@ export function SavedTab({ savedResources, onToggleBookmark, onNavigateCourses }
                     onClick={() => onToggleBookmark(res)}
                     title="Remove from saved"
                   >
-                    <Icon24Close />
+                    <Icon24Close style={{ color: '#E00613' }} />
                   </IconButton>
 
                   <Button
