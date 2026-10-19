@@ -229,6 +229,52 @@ router.get('/resources/:id', async (req, res, next) => {
   }
 });
 
+router.post('/resources/:id/send-telegram', async (req, res, next) => {
+  try {
+    const resourceId = parseInt(req.params.id, 10);
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'userId is required' });
+    }
+    const resource = await getResourceById(resourceId);
+    if (!resource) {
+      return res.status(404).json({ success: false, error: 'Resource not found' });
+    }
+
+    const bot = req.app.get('bot');
+    if (!bot) {
+      return res.json({
+        success: true,
+        delivered: false,
+        message: 'Bot instance not running in this environment. Material link preserved.'
+      });
+    }
+
+    try {
+      if (resource.telegram_file_id) {
+        await bot.api.sendDocument(userId, resource.telegram_file_id, {
+          caption: `📚 *${resource.title}*\n\n✅ Natively cached in your Telegram chat for offline study.`
+        });
+      } else {
+        await bot.api.sendMessage(
+          userId,
+          `📚 *${resource.title}*\n━━━━━━━━━━━━━━━━━━\n${resource.description || 'Verified academic resource.'}\n\n🔗 *Access Link:* ${resource.file_url}\n\n💡 *Offline Tip:* Materials in your Telegram chat remain accessible offline!`,
+          { parse_mode: 'Markdown' }
+        );
+      }
+      return res.json({ success: true, delivered: true, message: 'Resource delivered to your Telegram chat' });
+    } catch (telegramErr) {
+      return res.json({
+        success: true,
+        delivered: false,
+        message: `Could not send to Telegram chat: ${telegramErr.message}`
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/resources', async (req, res, next) => {
   try {
     const {

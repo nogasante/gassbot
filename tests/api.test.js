@@ -192,6 +192,22 @@ describe('GASS REST API Endpoints', () => {
       expect(res.body.data).to.be.an('array');
       expect(res.body.data.some(r => r.id === resourceId)).to.be.true;
     });
+
+    it('should handle sending resource to telegram via POST /api/resources/:id/send-telegram', async () => {
+      const res = await request(app)
+        .post(`/api/resources/${resourceId}/send-telegram`)
+        .send({ userId: studentId });
+      expect(res.status).to.equal(200);
+      expect(res.body.success).to.be.true;
+    });
+
+    it('should reject send-telegram with 400 when userId is missing', async () => {
+      const res = await request(app)
+        .post(`/api/resources/${resourceId}/send-telegram`)
+        .send({});
+      expect(res.status).to.equal(400);
+      expect(res.body.success).to.be.false;
+    });
   });
 
   describe('Announcements API', () => {

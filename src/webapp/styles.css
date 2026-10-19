@@ -1227,3 +1227,238 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;
 }
+
+/* ==========================================================================
+   14. Offline Vault, Network Pill & Offline Cheatsheet Modal
+   ========================================================================== */
+
+.walt-network-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 14px;
+  margin-top: 10px;
+  transition: all 0.25s ease;
+}
+
+.walt-network-status-pill.online {
+  background: rgba(16, 185, 129, 0.22);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.walt-network-status-pill.offline {
+  background: rgba(245, 158, 11, 0.28);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  animation: pulse-amber 2s infinite ease-in-out;
+}
+
+@keyframes pulse-amber {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+.walt-network-status-pill .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.walt-vault-filter-bar {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 14px;
+  overflow-x: auto;
+}
+
+.walt-vault-filter-chip {
+  padding: 6px 13px;
+  border-radius: 18px;
+  background: var(--walt-card-bg, #1A222D);
+  border: 1px solid var(--walt-card-border, rgba(255, 255, 255, 0.08));
+  color: var(--tgui--hint_color, #8A9AA8);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.walt-vault-filter-chip.active {
+  background: var(--walt-crimson, #E00613);
+  color: #FFFFFF;
+  border-color: var(--walt-crimson, #E00613);
+  box-shadow: 0 2px 8px rgba(224, 6, 19, 0.35);
+}
+
+.tag-offline {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10B981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+.tag-online {
+  background: rgba(74, 144, 226, 0.15) !important;
+  color: #5B9BE6 !important;
+  border: 1px solid rgba(74, 144, 226, 0.3) !important;
+}
+
+.tag-doc {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #F59E0B !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.walt-quickref-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10B981;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.walt-quickref-btn:active {
+  transform: scale(0.95);
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.walt-tg-send-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background: rgba(42, 171, 238, 0.15);
+  border: 1px solid rgba(42, 171, 238, 0.35);
+  color: #2AABEE;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.walt-tg-send-btn:active {
+  transform: scale(0.95);
+}
+
+.walt-offline-toast {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  padding: 9px 18px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  z-index: 2000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: slide-down-toast 0.25s ease-out;
+}
+
+@keyframes slide-down-toast {
+  from { opacity: 0; transform: translate(-50%, -12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.disabled-offline {
+  opacity: 0.5;
+  filter: grayscale(0.8);
+}
+
+/* Offline Cheatsheet Sheet Content */
+.walt-cheatsheet-sheet {
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.walt-cheatsheet-body {
+  overflow-y: auto;
+  padding: 0 20px 16px;
+  flex: 1;
+}
+
+.walt-cheatsheet-section {
+  margin-bottom: 20px;
+}
+
+.walt-cheatsheet-heading {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--walt-teal-light, #5B9BE6);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.walt-snippet-card {
+  background: var(--walt-bg-dark, #0E141D);
+  border: 1px solid var(--walt-card-border, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.walt-snippet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.walt-snippet-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tgui--text_color, #FFFFFF);
+}
+
+.walt-snippet-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: var(--tgui--hint_color, #8A9AA8);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.walt-snippet-copy-btn:active {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+}
+
+.walt-snippet-code {
+  margin: 0;
+  font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #E2E8F0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  border-radius: 8px;
+}
+

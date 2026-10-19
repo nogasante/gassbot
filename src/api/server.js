@@ -12,6 +12,9 @@ function createServer(bot = null) {
   app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  if (bot) {
+    app.set('bot', bot);
+  }
 
   // Serve static files for Student Mini WebApp
   const publicDir = path.join(__dirname, '../../public');
