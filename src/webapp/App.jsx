@@ -199,6 +199,7 @@ export function App() {
         <main>
           {activeTab === 'home' && (
             <HomeTab
+              user={user}
               stats={stats}
               announcements={announcements}
               onSelectLevel={handleSelectLevel}

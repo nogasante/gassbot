@@ -145,27 +145,57 @@ body {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--tgui--hint_color, #7f91a4);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.walt-scholar-name {
-  font-weight: 600;
-  color: var(--tgui--text_color, #FFFFFF);
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.walt-bullet {
-  opacity: 0.5;
+  line-height: 1.2;
 }
 
 .walt-slogan {
+  font-size: 12px;
   font-weight: 500;
-  color: var(--gass-blue);
+  color: var(--tgui--hint_color, #8e9cae);
+  letter-spacing: -0.1px;
+}
+
+/* ==========================================================================
+   Personalized Welcome Greeting Row (HomeTab)
+   ========================================================================== */
+.walt-user-welcome-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 4px 2px 0 2px;
+}
+
+.walt-welcome-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.walt-welcome-greeting {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--tgui--text_color, #FFFFFF);
+  letter-spacing: -0.3px;
+}
+
+.walt-welcome-subtitle {
+  font-size: 13px;
+  color: var(--tgui--hint_color, #8e9cae);
+  font-weight: 500;
+}
+
+.walt-user-tag {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--gass-blue, #4A90E2);
+  background: rgba(74, 144, 226, 0.12);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  padding: 4px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .walt-header-action-btn {

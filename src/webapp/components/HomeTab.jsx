@@ -63,10 +63,11 @@ function getCategoryGraphic(key) {
   return '/img/nav-skills.png';
 }
 
-export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar, onNavigateTab, onRequestOpen }) {
+export function HomeTab({ user, stats, announcements, onSelectLevel, onSelectPillar, onNavigateTab, onRequestOpen }) {
   const latestAnnouncement = announcements && announcements.length > 0 ? announcements[0] : null;
   const [levels, setLevels] = useState([100, 200, 300, 400]);
   const [categories, setCategories] = useState([]);
+  const studentName = user?.first_name ? [user.first_name, user.last_name].filter(Boolean).join(' ') : 'Scholar';
 
   // Fetch Dynamic Levels and Categories from Database
   useEffect(() => {
@@ -99,6 +100,19 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar, o
 
   return (
     <div className="walt-page-content">
+      {/* Personalized Scholar Welcome */}
+      <div className="walt-user-welcome-row">
+        <div className="walt-welcome-text">
+          <span className="walt-welcome-greeting">Akwaaba, {studentName} 👋</span>
+          <span className="walt-welcome-subtitle">Department of Statistics & Actuarial Science</span>
+        </div>
+        {user?.username && (
+          <div className="walt-user-tag">
+            <span>@{user.username}</span>
+          </div>
+        )}
+      </div>
+
       {/* 1. Hero Arc / Status Card */}
       <section className="walt-hero-card">
         <div className="walt-hero-badge">

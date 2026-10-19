@@ -19,9 +19,7 @@ function VerifiedBadge() {
   );
 }
 
-export function Header({ user, onRequestOpen }) {
-  const firstName = user?.first_name || 'Scholar';
-
+export function Header({ onRequestOpen }) {
   const handleRequest = () => {
     if (window.Telegram?.WebApp?.HapticFeedback) {
       window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
@@ -41,9 +39,7 @@ export function Header({ user, onRequestOpen }) {
             <VerifiedBadge />
           </div>
           <div className="walt-header-sub">
-            <span className="walt-scholar-name">{firstName}</span>
-            <span className="walt-bullet">•</span>
-            <span className="walt-slogan">Stats for Development</span>
+            <span className="walt-slogan">Statistics for Development</span>
           </div>
         </div>
       </div>
