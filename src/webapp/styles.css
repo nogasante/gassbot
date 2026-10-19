@@ -682,11 +682,20 @@ body {
   padding: 3px;
   border-radius: 20px;
   gap: 2px;
+  overflow: hidden;
 }
 
 .walt-switcher-level { flex: 3; }
 .walt-switcher-sem { flex: 2; }
-.walt-switcher-full { width: calc(100% - 32px); margin: 0 16px 16px; }
+.walt-switcher-full {
+  width: calc(100% - 32px);
+  margin: 0 16px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.walt-switcher-full::-webkit-scrollbar {
+  display: none !important;
+}
 
 .walt-switcher-item {
   flex: 1;
@@ -708,6 +717,58 @@ body {
   background: var(--tgui--section_bg_color, #17212b);
   color: var(--tgui--text_color, #FFFFFF);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Telegram Native Horizontal Category Filter Pills (Leak-proof) */
+.walt-category-filter-scroll {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 18px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.walt-category-filter-scroll::-webkit-scrollbar {
+  display: none !important;
+}
+
+.walt-category-filter-pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 15px;
+  border-radius: 20px;
+  background: var(--walt-card-bg, #1A222D);
+  border: 1px solid var(--walt-card-border, rgba(255, 255, 255, 0.08));
+  color: var(--tgui--hint_color, #8A9AA8);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.walt-category-filter-pill:active {
+  transform: scale(0.96);
+}
+
+.walt-category-filter-pill.active {
+  background: var(--walt-crimson, #E00613);
+  color: #FFFFFF;
+  border-color: var(--walt-crimson, #E00613);
+  box-shadow: 0 4px 12px rgba(224, 6, 19, 0.35);
+}
+
+.walt-category-filter-pill .pill-icon {
+  font-size: 14px;
+}
+
+.walt-category-filter-pill .pill-text {
+  letter-spacing: -0.01em;
 }
 
 /* ==========================================================================

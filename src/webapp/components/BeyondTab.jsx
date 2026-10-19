@@ -147,19 +147,28 @@ export function BeyondTab({ initialPillar = '', isBookmarked, onToggleBookmark }
         </p>
       </div>
 
-      {/* 2. Dynamic Capsule Switcher from Database Categories */}
+      {/* 2. Telegram Native Horizontal Category Filter Pills (Leak-proof) */}
       {categories.length > 0 && (
-        <div className="walt-capsule-switcher walt-switcher-full" style={{ marginBottom: '20px' }}>
-          {categories.map((cat) => (
-            <button
-              key={cat.key}
-              type="button"
-              className={`walt-switcher-item ${selectedKey === cat.key ? 'active' : ''}`}
-              onClick={() => handleCategoryChange(cat.key)}
-            >
-              {cat.label.replace(/^[^\w\s]+/, '').trim()}
-            </button>
-          ))}
+        <div className="walt-category-filter-scroll no-scrollbar">
+          {categories.map((cat) => {
+            const cleanLabel = cat.label.replace(/^[^\w\s]+/, '').trim();
+            const icon = cat.icon || (cat.label.match(/^[^\w\s]+/)?.[0] || '📚');
+            const isActive = selectedKey === cat.key;
+            return (
+              <button
+                key={cat.key}
+                type="button"
+                className={`walt-category-filter-pill ${isActive ? 'active' : ''}`}
+                onClick={(e) => {
+                  handleCategoryChange(cat.key);
+                  e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }}
+              >
+                <span className="pill-icon">{icon}</span>
+                <span className="pill-text">{cleanLabel}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
