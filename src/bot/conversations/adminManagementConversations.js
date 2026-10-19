@@ -254,7 +254,11 @@ async function adminEditCourseTitleConversation(conversation, ctx) {
     return;
   }
 
-  const courseId = (conversation.session && conversation.session.editCourseId) || (ctx.session && ctx.session.editCourseId);
+  let courseId = (conversation.session && conversation.session.editCourseId)
+    || (ctx.session && ctx.session.editCourseId)
+    || (ctx.match && ctx.match[1])
+    || (ctx.callbackQuery?.data?.match(/^admin_crs_edit_title_(\d+)$/)?.[1]);
+  courseId = parseInt(courseId, 10);
   const course = await conversation.external(() => getCourseById(courseId));
   if (!course) {
     await ctx.reply('❌ Course not found.');
@@ -326,7 +330,11 @@ async function adminEditCourseCodeConversation(conversation, ctx) {
     return;
   }
 
-  const courseId = (conversation.session && conversation.session.editCourseId) || (ctx.session && ctx.session.editCourseId);
+  let courseId = (conversation.session && conversation.session.editCourseId)
+    || (ctx.session && ctx.session.editCourseId)
+    || (ctx.match && ctx.match[1])
+    || (ctx.callbackQuery?.data?.match(/^admin_crs_edit_code_(\d+)$/)?.[1]);
+  courseId = parseInt(courseId, 10);
   const course = await conversation.external(() => getCourseById(courseId));
   if (!course) {
     await ctx.reply('❌ Course not found.');
@@ -398,7 +406,11 @@ async function adminEditResourceTitleConversation(conversation, ctx) {
     return;
   }
 
-  const resourceId = (conversation.session && conversation.session.editResourceId) || (ctx.session && ctx.session.editResourceId);
+  let resourceId = (conversation.session && conversation.session.editResourceId)
+    || (ctx.session && ctx.session.editResourceId)
+    || (ctx.match && ctx.match[1])
+    || (ctx.callbackQuery?.data?.match(/^admin_res_edit_title_(\d+)$/)?.[1]);
+  resourceId = parseInt(resourceId, 10);
   const resource = await conversation.external(() => getResourceById(resourceId));
   if (!resource) {
     await ctx.reply('❌ Resource file not found.');
@@ -470,7 +482,11 @@ async function adminEditCategoryLabelConversation(conversation, ctx) {
     return;
   }
 
-  const categoryKey = (conversation.session && conversation.session.editCategoryKey) || (ctx.session && ctx.session.editCategoryKey);
+  let categoryKey = (conversation.session && conversation.session.editCategoryKey)
+    || (ctx.session && ctx.session.editCategoryKey)
+    || (ctx.match && ctx.match[1])
+    || (ctx.callbackQuery?.data?.match(/^admin_cat_edit_(.+)$/)?.[1]);
+
   const cat = await conversation.external(() => getBeyondCategoryByKey(categoryKey));
   if (!cat) {
     await ctx.reply('❌ Category not found.');
@@ -549,7 +565,11 @@ async function adminEditResourceTypeLabelConversation(conversation, ctx) {
     return;
   }
 
-  const typeKey = (conversation.session && conversation.session.editResourceTypeKey) || (ctx.session && ctx.session.editResourceTypeKey);
+  let typeKey = (conversation.session && conversation.session.editResourceTypeKey)
+    || (ctx.session && ctx.session.editResourceTypeKey)
+    || (ctx.match && ctx.match[1])
+    || (ctx.callbackQuery?.data?.match(/^admin_type_edit_(.+)$/)?.[1]);
+
   const type = await conversation.external(() => getResourceTypeByKey(typeKey));
   if (!type) {
     await ctx.reply('❌ Resource type not found.');
