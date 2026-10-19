@@ -67,7 +67,7 @@ export function HomeTab({ user, stats, announcements, onSelectLevel, onSelectPil
   const latestAnnouncement = announcements && announcements.length > 0 ? announcements[0] : null;
   const [levels, setLevels] = useState([100, 200, 300, 400]);
   const [categories, setCategories] = useState([]);
-  const studentName = user?.first_name ? [user.first_name, user.last_name].filter(Boolean).join(' ') : 'Scholar';
+  const studentName = user?.first_name ? [user.first_name, user.last_name].filter(Boolean).join(' ') : 'Student';
 
   // Fetch Dynamic Levels and Categories from Database
   useEffect(() => {
@@ -136,9 +136,9 @@ export function HomeTab({ user, stats, announcements, onSelectLevel, onSelectPil
             Explore Curriculum
           </button>
           <div className="walt-hero-stats-pill">
-            <span>{stats?.totalResources || 58} Materials</span>
+            <span>{stats?.totalResources ?? 0} Materials</span>
             <span className="walt-bullet">•</span>
-            <span>{stats?.totalUsers || 240} Scholars</span>
+            <span>{stats?.totalCourses ?? 0} Courses</span>
           </div>
         </div>
       </section>
