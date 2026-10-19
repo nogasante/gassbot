@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function IconClose() {
   return (
@@ -10,13 +10,46 @@ function IconClose() {
 }
 
 export function RequestModal({ open, onClose, user, onSuccess }) {
+  const [levels, setLevels] = useState([100, 200, 300, 400]);
+  const [resourceTypes, setResourceTypes] = useState([]);
   const [level, setLevel] = useState(100);
   const [courseCode, setCourseCode] = useState('');
   const [title, setTitle] = useState('');
-  const [type, setType] = useState('past_questions');
+  const [type, setType] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Fetch dynamic levels and resource types from database
+  useEffect(() => {
+    async function loadFormOptions() {
+      try {
+        const [lvlRes, typeRes] = await Promise.all([
+          fetch('/api/courses/levels').then(r => r.json()),
+          fetch('/api/resource-types').then(r => r.json())
+        ]);
+
+        if (lvlRes.success && Array.isArray(lvlRes.data) && lvlRes.data.length > 0) {
+          setLevels(lvlRes.data);
+          setLevel(lvlRes.data[0]);
+        }
+
+        if (typeRes.success && Array.isArray(typeRes.data) && typeRes.data.length > 0) {
+          setResourceTypes(typeRes.data);
+          setType(typeRes.data[0].key);
+        } else {
+          // Natural fallback
+          setType('past_questions');
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic request options', err);
+      }
+    }
+
+    if (open) {
+      loadFormOptions();
+    }
+  }, [open]);
 
   if (!open) return null;
 
@@ -39,7 +72,7 @@ export function RequestModal({ open, onClose, user, onSuccess }) {
           level: Number(level),
           courseCode: courseCode.trim().toUpperCase() || 'GENERAL',
           title: title.trim(),
-          type,
+          type: type || 'past_questions',
           description: notes.trim() || `Requested via Telegram Mini App for Level ${level}`
         })
       });
@@ -102,10 +135,9 @@ export function RequestModal({ open, onClose, user, onSuccess }) {
               value={level}
               onChange={(e) => setLevel(Number(e.target.value))}
             >
-              <option value={100}>Level 100</option>
-              <option value={200}>Level 200</option>
-              <option value={300}>Level 300</option>
-              <option value={400}>Level 400</option>
+              {levels.map((lvl) => (
+                <option key={lvl} value={lvl}>Level {lvl}</option>
+              ))}
             </select>
           </div>
 
@@ -116,11 +148,21 @@ export function RequestModal({ open, onClose, user, onSuccess }) {
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
-              <option value="past_questions">Past Examination Questions</option>
-              <option value="lecture_notes">Lecture Slides & Notes</option>
-              <option value="textbook">Core Reference Textbook</option>
-              <option value="tutorials">Tutorial Sheet & Solutions</option>
-              <option value="software">Software Guide (R / Python / SQL)</option>
+              {resourceTypes.length > 0 ? (
+                resourceTypes.map((rt) => (
+                  <option key={rt.key} value={rt.key}>
+                    {rt.label}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value="past_questions">Past Examination Questions</option>
+                  <option value="lecture_notes">Lecture Slides & Notes</option>
+                  <option value="textbook">Core Reference Textbook</option>
+                  <option value="tutorials">Tutorial Sheet & Solutions</option>
+                  <option value="software">Software Guide (R / Python / SQL)</option>
+                </>
+              )}
             </select>
           </div>
 

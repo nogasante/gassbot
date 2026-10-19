@@ -9,11 +9,32 @@ function IconChevronRight() {
 }
 
 export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
+  const [levels, setLevels] = useState([100, 200, 300, 400]);
   const [level, setLevel] = useState(initialLevel);
   const [semester, setSemester] = useState(1);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 1. Fetch Dynamic Distinct Levels from Database
+  useEffect(() => {
+    async function fetchLevels() {
+      try {
+        const res = await fetch('/api/courses/levels');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          setLevels(data.data);
+          if (!data.data.includes(level)) {
+            setLevel(data.data[0]);
+          }
+        }
+      } catch (err) {
+        console.warn('Using default academic levels', err);
+      }
+    }
+    fetchLevels();
+  }, []);
+
+  // 2. Fetch Courses for Selected Dynamic Level and Semester
   useEffect(() => {
     fetchCourses();
   }, [level, semester]);
@@ -21,7 +42,7 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
   const fetchCourses = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/courses?level=${level}&semester=${semester}`);
+      const res = await fetch(`/api/courses?level=${encodeURIComponent(level)}&semester=${encodeURIComponent(semester)}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setCourses(data.data);
@@ -61,11 +82,11 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
 
   return (
     <div className="walt-page-content">
-      {/* Walt-style Capsule Switchers */}
+      {/* Dynamic Capsule Switchers */}
       <div className="walt-filter-row">
-        {/* Level Switcher */}
+        {/* Dynamic Level Switcher */}
         <div className="walt-capsule-switcher walt-switcher-level">
-          {[100, 200, 300, 400].map((lvl) => (
+          {levels.map((lvl) => (
             <button
               key={lvl}
               type="button"
@@ -125,7 +146,7 @@ export function CoursesTab({ initialLevel = 100, onSelectCourse }) {
                       <span className="walt-course-name">{course.title}</span>
                     </div>
                     <div className="walt-row-subtitle">
-                      {credits} Credits • Core Curriculum Syllabus
+                      {credits} Credits • {course.description || 'Core Curriculum Syllabus'}
                     </div>
                   </div>
                   <div className="walt-row-after">

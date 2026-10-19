@@ -64,7 +64,6 @@ async function telegramAuthMiddleware(req, res, next) {
   }
 
   if (!initData) {
-    // In dev mode without token, allow guest/mock access if configured
     if (config.env === 'development' && req.headers['x-mock-user']) {
       try {
         req.telegramUser = JSON.parse(req.headers['x-mock-user']);
@@ -76,7 +75,7 @@ async function telegramAuthMiddleware(req, res, next) {
 
   const validatedUser = validateTelegramWebAppData(initData);
   if (!validatedUser) {
-    return res.status(401).json({ success: false, error: 'Invalid or expired Telegram signature.' });
+    return res.status(401).json({ success: false, error: 'Invalid or expired Telegram signature. Please try again.' });
   }
 
   try {

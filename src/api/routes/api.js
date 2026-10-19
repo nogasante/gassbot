@@ -6,6 +6,7 @@ const {
   getCourseById,
   getCoursesByLevelAndSemester,
   getTopicsByCourseId,
+  getDistinctLevels,
   createCourse,
   updateCourse,
   deleteCourse
@@ -114,12 +115,21 @@ router.get('/courses', async (req, res, next) => {
   }
 });
 
+router.get('/courses/levels', async (req, res, next) => {
+  try {
+    const levels = await getDistinctLevels();
+    return res.json({ success: true, count: levels.length, data: levels });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/courses/:id', async (req, res, next) => {
   try {
     const courseId = parseInt(req.params.id, 10);
     const course = await getCourseById(courseId);
     if (!course) {
-      return res.status(404).json({ success: false, error: 'Course not found' });
+      return res.status(404).json({ success: false, error: 'Course not found.COntact executives for support.' });
     }
     const topics = await getTopicsByCourseId(courseId);
     const resources = await getResourcesByCourse(courseId);

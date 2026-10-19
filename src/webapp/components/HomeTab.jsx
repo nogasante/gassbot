@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Icons for Quick Actions
 function IconBook() {
@@ -54,8 +54,42 @@ function IconMegaphone() {
   );
 }
 
+function getCategoryGraphic(key) {
+  const k = (key || '').toLowerCase();
+  if (k.includes('prog') || k.includes('code') || k.includes('software')) return '/img/track-code.png';
+  if (k.includes('data') || k.includes('ml') || k.includes('ai')) return '/img/track-ds.png';
+  if (k.includes('career') || k.includes('job') || k.includes('opp')) return '/img/track-career.png';
+  if (k.includes('research') || k.includes('thesis')) return '/img/track-research.png';
+  return '/img/nav-skills.png';
+}
+
 export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar, onNavigateTab, onRequestOpen }) {
   const latestAnnouncement = announcements && announcements.length > 0 ? announcements[0] : null;
+  const [levels, setLevels] = useState([100, 200, 300, 400]);
+  const [categories, setCategories] = useState([]);
+
+  // Fetch Dynamic Levels and Categories from Database
+  useEffect(() => {
+    async function loadDynamicHomeData() {
+      try {
+        const [lvlRes, catRes] = await Promise.all([
+          fetch('/api/courses/levels').then(r => r.json()),
+          fetch('/api/beyond-categories').then(r => r.json())
+        ]);
+
+        if (lvlRes.success && Array.isArray(lvlRes.data) && lvlRes.data.length > 0) {
+          setLevels(lvlRes.data);
+        }
+
+        if (catRes.success && Array.isArray(catRes.data) && catRes.data.length > 0) {
+          setCategories(catRes.data);
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic home data', err);
+      }
+    }
+    loadDynamicHomeData();
+  }, []);
 
   const triggerHaptic = (type = 'light') => {
     if (window.Telegram?.WebApp?.HapticFeedback) {
@@ -65,7 +99,7 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar, o
 
   return (
     <div className="walt-page-content">
-      {/* 1. Hero Arc / Status Card (Walt Style) */}
+      {/* 1. Hero Arc / Status Card */}
       <section className="walt-hero-card">
         <div className="walt-hero-badge">
           <span className="walt-pulse-dot" />
@@ -95,7 +129,7 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar, o
         </div>
       </section>
 
-      {/* 2. Walt's 4 Circular Quick Action Buttons */}
+      {/* 2. 4 Circular Quick Action Buttons */}
       <section className="walt-quick-actions-row">
         <div 
           className="walt-action-btn-item"
@@ -151,8 +185,7 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar, o
         </div>
       </section>
 
-
-      {/* 4. Official Departmental Announcement Card */}
+      {/* 3. Official Departmental Announcement Card (if present) */}
       {latestAnnouncement && (
         <section className="walt-announcement-card">
           <div className="walt-announcement-header">
@@ -169,153 +202,77 @@ export function HomeTab({ stats, announcements, onSelectLevel, onSelectPillar, o
         </section>
       )}
 
-      {/* 5. Walt's Grouped List Card: Academic Levels (4 Levels) */}
+      {/* 4. Dynamic Grouped List: Academic Levels from Database */}
       <div className="walt-section-header-row">
         <span className="walt-section-title">Academic Curriculum</span>
-        <span className="walt-section-badge">4 Levels • 8 Semesters</span>
+        <span className="walt-section-badge">{levels.length} Levels Available</span>
       </div>
 
       <section className="walt-card-group">
-        <div 
-          className="walt-list-row"
-          onClick={() => {
-            triggerHaptic('light');
-            onSelectLevel(100);
-          }}
-        >
-          <div className="walt-row-avatar walt-lvl-100">L100</div>
-          <div className="walt-row-content">
-            <div className="walt-row-title">Level 100 Foundation</div>
-            <div className="walt-row-subtitle">Calculus, Linear Algebra, Descriptive Stats, Probability I</div>
-          </div>
-          <div className="walt-row-after">
-            <IconChevronRight />
-          </div>
-        </div>
+        {levels.map((lvl, idx) => {
+          const avatarClass = lvl === 100 ? 'walt-lvl-100' : lvl === 200 ? 'walt-lvl-200' : lvl === 300 ? 'walt-lvl-300' : 'walt-lvl-400';
+          const subtitle = lvl === 100 
+            ? 'Calculus, Linear Algebra, Descriptive Stats, Probability I'
+            : lvl === 200
+            ? 'Probability Distributions, Statistical Computing, Linear Models'
+            : lvl === 300
+            ? 'Statistical Inference, Stochastic Processes, Regression Analysis'
+            : 'Multivariate Analysis, Time Series, Biostatistics, Project Work';
 
-        <div className="walt-row-divider" />
-
-        <div 
-          className="walt-list-row"
-          onClick={() => {
-            triggerHaptic('light');
-            onSelectLevel(200);
-          }}
-        >
-          <div className="walt-row-avatar walt-lvl-200">L200</div>
-          <div className="walt-row-content">
-            <div className="walt-row-title">Level 200 Core</div>
-            <div className="walt-row-subtitle">Probability Distributions, Statistical Computing, Linear Models</div>
-          </div>
-          <div className="walt-row-after">
-            <IconChevronRight />
-          </div>
-        </div>
-
-        <div className="walt-row-divider" />
-
-        <div 
-          className="walt-list-row"
-          onClick={() => {
-            triggerHaptic('light');
-            onSelectLevel(300);
-          }}
-        >
-          <div className="walt-row-avatar walt-lvl-300">L300</div>
-          <div className="walt-row-content">
-            <div className="walt-row-title">Level 300 Advanced</div>
-            <div className="walt-row-subtitle">Statistical Inference, Stochastic Processes, Regression Analysis</div>
-          </div>
-          <div className="walt-row-after">
-            <IconChevronRight />
-          </div>
-        </div>
-
-        <div className="walt-row-divider" />
-
-        <div 
-          className="walt-list-row"
-          onClick={() => {
-            triggerHaptic('light');
-            onSelectLevel(400);
-          }}
-        >
-          <div className="walt-row-avatar walt-lvl-400">L400</div>
-          <div className="walt-row-content">
-            <div className="walt-row-title">Level 400 Honours</div>
-            <div className="walt-row-subtitle">Multivariate Analysis, Time Series, Biostatistics, Project Work</div>
-          </div>
-          <div className="walt-row-after">
-            <IconChevronRight />
-          </div>
-        </div>
+          return (
+            <React.Fragment key={lvl}>
+              {idx > 0 && <div className="walt-row-divider" />}
+              <div 
+                className="walt-list-row"
+                onClick={() => {
+                  triggerHaptic('light');
+                  onSelectLevel(lvl);
+                }}
+              >
+                <div className={`walt-row-avatar ${avatarClass}`}>L{lvl}</div>
+                <div className="walt-row-content">
+                  <div className="walt-row-title">Level {lvl} Curriculum</div>
+                  <div className="walt-row-subtitle">{subtitle}</div>
+                </div>
+                <div className="walt-row-after">
+                  <IconChevronRight />
+                </div>
+              </div>
+            </React.Fragment>
+          );
+        })}
       </section>
 
-      {/* 6. Featured Specializations (Walt 2-Column Grid) */}
-      <div className="walt-section-header-row" style={{ marginTop: '20px' }}>
-        <span className="walt-section-title">Specialization Tracks</span>
-        <span className="walt-section-link" onClick={() => onNavigateTab('beyond')}>See All &gt;</span>
-      </div>
-
-      <section className="walt-grid-2col">
-        <div 
-          className="walt-grid-card"
-          onClick={() => {
-            triggerHaptic('light');
-            onSelectPillar('ds_ml');
-          }}
-        >
-          <div className="walt-grid-badge">HOT</div>
-          <div className="walt-grid-icon-wrap">
-            <img src="/img/track-ds.png" alt="Data Science" />
+      {/* 5. Dynamic Specialization Tracks from Database */}
+      {categories.length > 0 && (
+        <>
+          <div className="walt-section-header-row" style={{ marginTop: '20px' }}>
+            <span className="walt-section-title">Specialization Tracks</span>
+            <span className="walt-section-link" onClick={() => onNavigateTab('beyond')}>See All &gt;</span>
           </div>
-          <div className="walt-grid-title">Data Science & AI</div>
-          <div className="walt-grid-value">PyTorch • Machine Learning</div>
-        </div>
 
-        <div 
-          className="walt-grid-card"
-          onClick={() => {
-            triggerHaptic('light');
-            onSelectPillar('prog_tools');
-          }}
-        >
-          <div className="walt-grid-badge walt-badge-cyan">ESSENTIAL</div>
-          <div className="walt-grid-icon-wrap">
-            <img src="/img/track-code.png" alt="Computing" />
-          </div>
-          <div className="walt-grid-title">Software & Tools</div>
-          <div className="walt-grid-value">R • Python • SQL • LaTeX</div>
-        </div>
-
-        <div 
-          className="walt-grid-card"
-          onClick={() => {
-            triggerHaptic('light');
-            onSelectPillar('research_thesis');
-          }}
-        >
-          <div className="walt-grid-icon-wrap">
-            <img src="/img/track-research.png" alt="Research" />
-          </div>
-          <div className="walt-grid-title">Research & Thesis</div>
-          <div className="walt-grid-value">Biostats • Actuarial</div>
-        </div>
-
-        <div 
-          className="walt-grid-card"
-          onClick={() => {
-            triggerHaptic('light');
-            onSelectPillar('career_growth');
-          }}
-        >
-          <div className="walt-grid-icon-wrap">
-            <img src="/img/track-career.png" alt="Careers" />
-          </div>
-          <div className="walt-grid-title">Careers & Growth</div>
-          <div className="walt-grid-value">Scholarships • Internships</div>
-        </div>
-      </section>
+          <section className="walt-grid-2col">
+            {categories.map((cat) => (
+              <div 
+                key={cat.key}
+                className="walt-grid-card"
+                onClick={() => {
+                  triggerHaptic('light');
+                  onSelectPillar(cat.key);
+                }}
+              >
+                <div className="walt-grid-icon-wrap">
+                  <img src={getCategoryGraphic(cat.key)} alt={cat.label} />
+                </div>
+                <div className="walt-grid-title">{cat.label.replace(/^[^\w\s]+/, '').trim()}</div>
+                <div className="walt-grid-value">
+                  {cat.description || cat.desc || 'Curated Toolchains'}
+                </div>
+              </div>
+            ))}
+          </section>
+        </>
+      )}
     </div>
   );
 }

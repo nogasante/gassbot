@@ -36,21 +36,35 @@ function IconExternalLink() {
   );
 }
 
-const QUICK_SEARCH_CHIPS = [
-  { label: 'STAT 151', query: 'STAT 151', sub: 'Prob I' },
-  { label: 'MATH 153', query: 'MATH 153', sub: 'Algebra' },
-  { label: 'STAT 261', query: 'STAT 261', sub: 'Prob II' },
-  { label: 'MATH 251', query: 'MATH 251', sub: 'Calculus' },
-  { label: 'R Studio', query: 'R', sub: 'Computing' },
-  { label: 'Python', query: 'Python', sub: 'Data Science' },
-  { label: 'Past Exams', query: 'past question', sub: 'Archive' },
-  { label: 'Syllabus', query: 'syllabus', sub: 'Outlines' },
-];
-
 export function SearchTab({ isBookmarked, onToggleBookmark, onSelectCourse }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [quickCourses, setQuickCourses] = useState([]);
+  const [resourceTypes, setResourceTypes] = useState([]);
+
+  // Fetch dynamic courses and resource types from database
+  useEffect(() => {
+    async function loadDynamicSearchMeta() {
+      try {
+        const [cRes, tRes] = await Promise.all([
+          fetch('/api/courses').then(r => r.json()),
+          fetch('/api/resource-types').then(r => r.json())
+        ]);
+
+        if (cRes.success && Array.isArray(cRes.data) && cRes.data.length > 0) {
+          setQuickCourses(cRes.data.slice(0, 8));
+        }
+
+        if (tRes.success && Array.isArray(tRes.data) && tRes.data.length > 0) {
+          setResourceTypes(tRes.data);
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic search metadata', err);
+      }
+    }
+    loadDynamicSearchMeta();
+  }, []);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -117,46 +131,68 @@ export function SearchTab({ isBookmarked, onToggleBookmark, onSelectCourse }) {
         </div>
       </div>
 
-      {/* When Empty: 4-Column Quick Access Grid (Walt Trade Tab style) */}
+      {/* When Empty: Dynamic 4-Column Quick Access Grid from Database Courses */}
       {!query && (
         <>
           <div className="walt-section-header-row" style={{ marginTop: '16px' }}>
-            <span className="walt-section-title">Frequently Searched</span>
-            <span className="walt-section-badge">Quick Jump</span>
+            <span className="walt-section-title">Quick Course Access</span>
+            <span className="walt-section-badge">From Database</span>
           </div>
 
           <div className="walt-grid-4col">
-            {QUICK_SEARCH_CHIPS.map((chip) => (
-              <div
-                key={chip.label}
-                className="walt-4col-item"
-                onClick={() => handleQuickChip(chip.query)}
-              >
-                <div className="walt-4col-circle">
-                  <span>{chip.label.slice(0, 4)}</span>
+            {quickCourses.length > 0 ? (
+              quickCourses.map((c) => (
+                <div
+                  key={c.id}
+                  className="walt-4col-item"
+                  onClick={() => handleQuickChip(c.code)}
+                >
+                  <div className="walt-4col-circle">
+                    <span>{c.code.split(' ')[0]}</span>
+                  </div>
+                  <div className="walt-4col-label">{c.code}</div>
+                  <div className="walt-4col-sub">L{c.level} • S{c.semester}</div>
                 </div>
-                <div className="walt-4col-label">{chip.label}</div>
-                <div className="walt-4col-sub">{chip.sub}</div>
+              ))
+            ) : (
+              ['STAT 151', 'MATH 153', 'STAT 261', 'MATH 251'].map((code) => (
+                <div
+                  key={code}
+                  className="walt-4col-item"
+                  onClick={() => handleQuickChip(code)}
+                >
+                  <div className="walt-4col-circle">
+                    <span>{code.slice(0, 4)}</span>
+                  </div>
+                  <div className="walt-4col-label">{code}</div>
+                  <div className="walt-4col-sub">Core</div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Dynamic Category Filter Pills from Database Resource Types */}
+          {resourceTypes.length > 0 && (
+            <>
+              <div className="walt-section-header-row" style={{ marginTop: '24px' }}>
+                <span className="walt-section-title">Browse by Category</span>
+                <span className="walt-section-badge">{resourceTypes.length} Types</span>
               </div>
-            ))}
-          </div>
 
-          <div className="walt-section-header-row" style={{ marginTop: '24px' }}>
-            <span className="walt-section-title">Browse by Category</span>
-          </div>
-
-          <div className="walt-category-pills-row">
-            {['Past Questions', 'Lecture Slides', 'Formula Sheets', 'Syllabus Packs'].map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                className="walt-cat-pill"
-                onClick={() => handleQuickChip(cat)}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+              <div className="walt-category-pills-row">
+                {resourceTypes.map((rt) => (
+                  <button
+                    key={rt.key}
+                    type="button"
+                    className="walt-cat-pill"
+                    onClick={() => handleQuickChip(rt.label.replace(/^[^\w\s]+/, '').trim())}
+                  >
+                    {rt.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
 
