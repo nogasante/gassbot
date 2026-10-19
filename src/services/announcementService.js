@@ -93,9 +93,55 @@ _${brand.slogan}_`;
   };
 }
 
+async function getAnnouncementById(id) {
+  if (!id) return null;
+  const res = await query(
+    `SELECT a.id, a.author_id, a.title, a.content, a.priority, a.target_level,
+            a.broadcasted_at, a.created_at, u.first_name as author_name
+     FROM announcements a
+     LEFT JOIN users u ON a.author_id = u.id
+     WHERE a.id = $1;`,
+    [id]
+  );
+  return res.rows[0] || null;
+}
+
+async function updateAnnouncement(id, fields = {}) {
+  const current = await getAnnouncementById(id);
+  if (!current) return null;
+
+  const title = fields.title !== undefined ? fields.title.trim() : current.title;
+  const content = fields.content !== undefined ? fields.content.trim() : current.content;
+  const priority = fields.priority !== undefined ? fields.priority : current.priority;
+  const targetLevel = fields.targetLevel !== undefined ? fields.targetLevel : current.target_level;
+
+  const res = await query(
+    `UPDATE announcements
+     SET title = $1, content = $2, priority = $3, target_level = $4
+     WHERE id = $5
+     RETURNING id, author_id, title, content, priority, target_level, broadcasted_at, created_at;`,
+    [title, content, priority, targetLevel, id]
+  );
+  return res.rows[0] || null;
+}
+
+async function deleteAnnouncement(id) {
+  const res = await query(
+    `DELETE FROM announcements
+     WHERE id = $1
+     RETURNING id, title;`,
+    [id]
+  );
+  return res.rows[0] || null;
+}
+
 module.exports = {
   createAnnouncement,
   getRecentAnnouncements,
+  getAnnouncementById,
+  updateAnnouncement,
+  deleteAnnouncement,
   markAnnouncementBroadcasted,
   broadcastAnnouncement
 };
+

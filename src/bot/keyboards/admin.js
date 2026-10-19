@@ -9,9 +9,11 @@ function getAdminPanelKeyboard(pendingCount = 0) {
     .text('🚀 Beyond Curriculum', 'admin_manage_categories')
     .row()
     .text('📂 Manage Uploaded Files', 'admin_manage_resources')
-    .text('📢 Broadcast Announcement', 'admin_broadcast')
+    .text('📢 Announcements', 'admin_manage_announcements')
     .row()
     .text('🏷️ Resource Types', 'admin_manage_types')
+    .text('📢 Quick Broadcast', 'admin_broadcast')
+    .row()
     .text('🏠 Main Menu', 'menu_main');
 }
 
@@ -212,6 +214,38 @@ function getRequestModerationKeyboard(requestId, currentIndex = 0, totalCount = 
   return kb;
 }
 
+function getManageAnnouncementsKeyboard(announcements = []) {
+  const kb = new InlineKeyboard()
+    .text('➕ Broadcast New Announcement', 'admin_broadcast')
+    .row();
+
+  announcements.forEach((a) => {
+    const shortTitle = a.title.length > 28 ? `${a.title.slice(0, 25)}...` : a.title;
+    const prioEmoji = a.priority === 'urgent' ? '🚨' : (a.priority === 'event' ? '📅' : '📢');
+    kb.text(`${prioEmoji} ${shortTitle}`, `admin_ann_view_${a.id}`).row();
+  });
+
+  kb.text('🔙 Back to Admin Panel', 'menu_admin');
+  return kb;
+}
+
+function getAnnouncementDetailsKeyboard(announcement) {
+  return new InlineKeyboard()
+    .text('✏️ Edit Title', `admin_ann_edit_title_${announcement.id}`)
+    .text('✏️ Edit Content', `admin_ann_edit_content_${announcement.id}`)
+    .row()
+    .text('🗑️ Delete Announcement', `admin_ann_del_${announcement.id}`)
+    .row()
+    .text('🔙 Back to Announcements', 'admin_manage_announcements')
+    .text('🏠 Admin Panel', 'menu_admin');
+}
+
+function getConfirmDeleteAnnouncementKeyboard(announcementId) {
+  return new InlineKeyboard()
+    .text('💥 Confirm Delete', `admin_ann_del_confirm_${announcementId}`)
+    .text('❌ Cancel', `admin_ann_view_${announcementId}`);
+}
+
 module.exports = {
   getAdminPanelKeyboard,
   getManageCoursesKeyboard,
@@ -224,5 +258,8 @@ module.exports = {
   getResourceTypeDetailsKeyboard,
   getResourceDetailsKeyboard,
   getConfirmDeleteKeyboard,
-  getRequestModerationKeyboard
+  getRequestModerationKeyboard,
+  getManageAnnouncementsKeyboard,
+  getAnnouncementDetailsKeyboard,
+  getConfirmDeleteAnnouncementKeyboard
 };

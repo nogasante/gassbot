@@ -232,6 +232,85 @@ describe('GASS REST API Endpoints', () => {
       expect(res.body.data).to.be.an('array');
       expect(res.body.data.length).to.be.at.least(1);
     });
+
+    it('should retrieve single announcement via GET /api/announcements/:id', async () => {
+      const created = await request(app)
+        .post('/api/announcements')
+        .send({
+          title: 'Career Fair 2026',
+          content: 'Meet top tech and finance recruiters on Friday.',
+          priority: 'urgent',
+          targetLevel: 400
+        });
+
+      const annId = created.body.data.id;
+      const res = await request(app).get(`/api/announcements/${annId}`);
+      expect(res.status).to.equal(200);
+      expect(res.body.success).to.be.true;
+      expect(res.body.data.title).to.equal('Career Fair 2026');
+      expect(res.body.data.target_level).to.equal(400);
+    });
+
+    it('should return 404 when GET /api/announcements/:id for non-existent id', async () => {
+      const res = await request(app).get('/api/announcements/999999');
+      expect(res.status).to.equal(404);
+      expect(res.body.success).to.be.false;
+    });
+
+    it('should update announcement via PATCH /api/announcements/:id', async () => {
+      const created = await request(app)
+        .post('/api/announcements')
+        .send({
+          title: 'Workshop Venue Change',
+          content: 'Room 204 instead of Hall B.',
+          priority: 'normal'
+        });
+
+      const annId = created.body.data.id;
+      const res = await request(app)
+        .patch(`/api/announcements/${annId}`)
+        .send({
+          title: 'Workshop Venue Updated to Great Hall',
+          priority: 'urgent'
+        });
+
+      expect(res.status).to.equal(200);
+      expect(res.body.success).to.be.true;
+      expect(res.body.data.title).to.equal('Workshop Venue Updated to Great Hall');
+      expect(res.body.data.priority).to.equal('urgent');
+      expect(res.body.data.content).to.equal('Room 204 instead of Hall B.');
+    });
+
+    it('should return 404 when PATCH /api/announcements/:id for non-existent id', async () => {
+      const res = await request(app)
+        .patch('/api/announcements/999999')
+        .send({ title: 'Non Existent' });
+      expect(res.status).to.equal(404);
+      expect(res.body.success).to.be.false;
+    });
+
+    it('should delete announcement via DELETE /api/announcements/:id', async () => {
+      const created = await request(app)
+        .post('/api/announcements')
+        .send({
+          title: 'Delete Test Announcement',
+          content: 'This will be deleted'
+        });
+
+      const annId = created.body.data.id;
+      const res = await request(app).delete(`/api/announcements/${annId}`);
+      expect(res.status).to.equal(200);
+      expect(res.body.success).to.be.true;
+
+      const verify = await request(app).get(`/api/announcements/${annId}`);
+      expect(verify.status).to.equal(404);
+    });
+
+    it('should return 404 when DELETE /api/announcements/:id for non-existent id', async () => {
+      const res = await request(app).delete('/api/announcements/999999');
+      expect(res.status).to.equal(404);
+      expect(res.body.success).to.be.false;
+    });
   });
 
   describe('GET /api/stats', () => {

@@ -4,6 +4,7 @@ const courseService = require('../src/services/courseService');
 const resourceService = require('../src/services/resourceService');
 const categoryService = require('../src/services/categoryService');
 const resourceTypeService = require('../src/services/resourceTypeService');
+const announcementService = require('../src/services/announcementService');
 
 const {
   getAdminPanelKeyboard,
@@ -11,7 +12,10 @@ const {
   getResourceDetailsKeyboard,
   getCategoryDetailsKeyboard,
   getResourceTypeDetailsKeyboard,
-  getConfirmDeleteKeyboard
+  getConfirmDeleteKeyboard,
+  getManageAnnouncementsKeyboard,
+  getAnnouncementDetailsKeyboard,
+  getConfirmDeleteAnnouncementKeyboard
 } = require('../src/bot/keyboards/admin');
 
 const {
@@ -36,7 +40,11 @@ const {
   handleViewResourceType,
   handleConfirmDeleteResourceType,
   handleDeleteResourceType,
-  handleToggleResourceTypeActive
+  handleToggleResourceTypeActive,
+  handleManageAnnouncements,
+  handleViewAnnouncement,
+  handleConfirmDeleteAnnouncement,
+  handleDeleteAnnouncement
 } = require('../src/bot/handlers/admin');
 
 const {
@@ -44,7 +52,9 @@ const {
   adminEditCourseCodeConversation,
   adminEditResourceTitleConversation,
   adminEditCategoryLabelConversation,
-  adminEditResourceTypeLabelConversation
+  adminEditResourceTypeLabelConversation,
+  adminEditAnnouncementTitleConversation,
+  adminEditAnnouncementContentConversation
 } = require('../src/bot/conversations/adminManagementConversations');
 const { config } = require('../src/config');
 const userService = require('../src/services/userService');
@@ -117,6 +127,24 @@ describe('Full Edit & Permanent Delete Across Bot & Services', () => {
       const buttons = kb.inline_keyboard.flat();
       expect(buttons.some(b => b.callback_data === 'confirm_action' && b.text.includes('Confirm'))).to.be.true;
       expect(buttons.some(b => b.callback_data === 'cancel_action' && b.text.includes('Cancel'))).to.be.true;
+    });
+
+    it('Announcement keyboards should generate manage, details, and confirm delete options', () => {
+      const announcements = [{ id: 10, title: 'Exam Notice', priority: 'urgent' }];
+      const manageKb = getManageAnnouncementsKeyboard(announcements);
+      const manageBtns = manageKb.inline_keyboard.flat();
+      expect(manageBtns.some(b => b.callback_data === 'admin_broadcast')).to.be.true;
+      expect(manageBtns.some(b => b.callback_data === 'admin_ann_view_10')).to.be.true;
+
+      const detailsKb = getAnnouncementDetailsKeyboard(announcements[0]);
+      const detailsBtns = detailsKb.inline_keyboard.flat();
+      expect(detailsBtns.some(b => b.callback_data === 'admin_ann_edit_title_10')).to.be.true;
+      expect(detailsBtns.some(b => b.callback_data === 'admin_ann_edit_content_10')).to.be.true;
+      expect(detailsBtns.some(b => b.callback_data === 'admin_ann_del_10')).to.be.true;
+
+      const confirmKb = getConfirmDeleteAnnouncementKeyboard(10);
+      const confirmBtns = confirmKb.inline_keyboard.flat();
+      expect(confirmBtns.some(b => b.callback_data === 'admin_ann_del_confirm_10')).to.be.true;
     });
   });
 
@@ -872,6 +900,109 @@ describe('Full Edit & Permanent Delete Across Bot & Services', () => {
       expect(updated.icon).to.equal('🎯');
 
       await resourceTypeService.deleteResourceType(testType.key);
+    });
+
+    it('adminEditAnnouncementTitleConversation should update announcement title', async () => {
+      const ann = await announcementService.createAnnouncement({
+        title: 'Draft Announcement Title',
+        content: 'This announcement will be renamed.',
+        priority: 'normal'
+      });
+
+      const conversation = createMockConversation([
+        { message: { text: 'Finalized Announcement Title' } }
+      ]);
+      const replies = [];
+      const ctx = {
+        from: { id: adminTelegramId },
+        session: { editAnnouncementId: ann.id },
+        reply: async (text) => { replies.push(text); }
+      };
+
+      await adminEditAnnouncementTitleConversation(conversation, ctx);
+      expect(replies.some(r => r.includes('Announcement Title Updated Successfully'))).to.be.true;
+
+      const updated = await announcementService.getAnnouncementById(ann.id);
+      expect(updated.title).to.equal('Finalized Announcement Title');
+
+      await announcementService.deleteAnnouncement(ann.id);
+    });
+
+    it('adminEditAnnouncementContentConversation should update announcement content', async () => {
+      const ann = await announcementService.createAnnouncement({
+        title: 'Seminar Schedule',
+        content: 'Draft content for seminar.',
+        priority: 'normal'
+      });
+
+      const conversation = createMockConversation([
+        { message: { text: 'Full seminar starts at 10:00 AM in the Math Auditorium.' } }
+      ]);
+      const replies = [];
+      const ctx = {
+        from: { id: adminTelegramId },
+        session: { editAnnouncementId: ann.id },
+        reply: async (text) => { replies.push(text); }
+      };
+
+      await adminEditAnnouncementContentConversation(conversation, ctx);
+      expect(replies.some(r => r.includes('Announcement Content Updated Successfully'))).to.be.true;
+
+      const updated = await announcementService.getAnnouncementById(ann.id);
+      expect(updated.content).to.equal('Full seminar starts at 10:00 AM in the Math Auditorium.');
+
+      await announcementService.deleteAnnouncement(ann.id);
+    });
+  });
+
+  describe('Announcement Admin Handlers', () => {
+    const adminId = 999111222;
+
+    it('handleManageAnnouncements and handleViewAnnouncement should render details', async () => {
+      const ann = await announcementService.createAnnouncement({
+        title: 'Tech Talk Announcement',
+        content: 'Special session on R packages.',
+        priority: 'event',
+        targetLevel: 300
+      });
+
+      const ctxList = {
+        from: { id: adminId },
+        reply: async (text, opts) => {
+          expect(text).to.include('Announcements & Broadcasts');
+          expect(opts.reply_markup).to.exist;
+        }
+      };
+      await handleManageAnnouncements(ctxList);
+
+      const ctxView = {
+        from: { id: adminId },
+        reply: async (text, opts) => {
+          expect(text).to.include('Announcement Details');
+          expect(text).to.include('Tech Talk Announcement');
+          expect(opts.reply_markup).to.exist;
+        }
+      };
+      await handleViewAnnouncement(ctxView, ann.id);
+
+      const ctxDelConfirm = {
+        from: { id: adminId },
+        reply: async (text, opts) => {
+          expect(text).to.include('Delete Announcement Confirmation');
+          expect(opts.reply_markup).to.exist;
+        }
+      };
+      await handleConfirmDeleteAnnouncement(ctxDelConfirm, ann.id);
+
+      const ctxDelete = {
+        from: { id: adminId },
+        answerCallbackQuery: async () => {},
+        reply: async () => {}
+      };
+      await handleDeleteAnnouncement(ctxDelete, ann.id);
+
+      const deleted = await announcementService.getAnnouncementById(ann.id);
+      expect(deleted).to.be.null;
     });
   });
 });

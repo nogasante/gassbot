@@ -29,7 +29,13 @@ const {
   getUserRequests,
   updateRequestStatus
 } = require('../../services/requestService');
-const { getRecentAnnouncements, createAnnouncement } = require('../../services/announcementService');
+const {
+  getRecentAnnouncements,
+  createAnnouncement,
+  getAnnouncementById,
+  updateAnnouncement,
+  deleteAnnouncement
+} = require('../../services/announcementService');
 const { getPlatformStats } = require('../../services/statsService');
 const {
   getAllBeyondCategories,
@@ -624,6 +630,45 @@ router.get('/announcements', async (req, res, next) => {
       targetLevel: level ? parseInt(level, 10) : null
     });
     return res.json({ success: true, count: announcements.length, data: announcements });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/announcements/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const announcement = await getAnnouncementById(id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, error: 'Announcement not found' });
+    }
+    return res.json({ success: true, data: announcement });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch('/announcements/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const updated = await updateAnnouncement(id, req.body);
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Announcement not found' });
+    }
+    return res.json({ success: true, data: updated });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/announcements/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const deleted = await deleteAnnouncement(id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: 'Announcement not found' });
+    }
+    return res.json({ success: true, message: 'Announcement deleted successfully', data: deleted });
   } catch (err) {
     next(err);
   }

@@ -3,6 +3,11 @@ const { getUserByTelegramId } = require('../../services/userService');
 const { getPendingRequests, getRequestById, updateRequestStatus } = require('../../services/requestService');
 const { getPlatformStats } = require('../../services/statsService');
 const {
+  getRecentAnnouncements,
+  getAnnouncementById,
+  deleteAnnouncement
+} = require('../../services/announcementService');
+const {
   getAdminPanelKeyboard,
   getManageCoursesKeyboard,
   getCourseDetailsKeyboard,
@@ -12,7 +17,10 @@ const {
   getResourceTypeDetailsKeyboard,
   getResourceDetailsKeyboard,
   getConfirmDeleteKeyboard,
-  getRequestModerationKeyboard
+  getRequestModerationKeyboard,
+  getManageAnnouncementsKeyboard,
+  getAnnouncementDetailsKeyboard,
+  getConfirmDeleteAnnouncementKeyboard
 } = require('../keyboards/admin');
 const { escapeMarkdown } = require('../utils/format');
 const { InlineKeyboard } = require('grammy');
@@ -1052,6 +1060,119 @@ async function handleDeleteResource(ctx, resourceId) {
   }
 }
 
+async function handleManageAnnouncements(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
+
+  const announcements = await getRecentAnnouncements({ limit: 15 });
+
+  const text =
+`📢 *Announcements & Broadcasts*
+━━━━━━━━━━━━━━━━━━
+Manage departmental broadcasts, edit previous notices, or send a new real-time announcement to students.
+
+Select an announcement to view details, edit, or delete:`;
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getManageAnnouncementsKeyboard(announcements)
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getManageAnnouncementsKeyboard(announcements)
+    });
+  }
+}
+
+async function handleViewAnnouncement(ctx, id) {
+  if (!(await ensureAdmin(ctx))) return;
+
+  const ann = await getAnnouncementById(id);
+  if (!ann) {
+    await safeAnswerCallback(ctx, { text: 'Announcement not found.' });
+    return;
+  }
+
+  const dateStr = ann.broadcasted_at || ann.created_at 
+    ? new Date(ann.broadcasted_at || ann.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : 'Recent';
+
+  const text =
+`📢 *Announcement Details*
+━━━━━━━━━━━━━━━━━━
+📌 *Title:* ${escapeMarkdown(ann.title)}
+🎯 *Target Level:* ${ann.target_level ? `Level ${ann.target_level}` : 'All Levels'}
+🚨 *Priority:* ${escapeMarkdown(ann.priority || 'normal')}
+📅 *Date:* ${dateStr}
+✍️ *Author:* ${escapeMarkdown(ann.author_name || 'Executive')}
+
+📝 *Content:*
+${escapeMarkdown(ann.content)}
+
+Select an action below:`;
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getAnnouncementDetailsKeyboard(ann)
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getAnnouncementDetailsKeyboard(ann)
+    });
+  }
+}
+
+async function handleConfirmDeleteAnnouncement(ctx, id) {
+  if (!(await ensureAdmin(ctx))) return;
+
+  const ann = await getAnnouncementById(id);
+  if (!ann) {
+    await safeAnswerCallback(ctx, { text: 'Announcement not found.' });
+    return;
+  }
+
+  const text =
+`⚠️ *Delete Announcement Confirmation*
+━━━━━━━━━━━━━━━━━━
+Are you sure you want to permanently delete this announcement?
+
+📌 *Title:* "${escapeMarkdown(ann.title)}"
+
+This action cannot be undone.`;
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getConfirmDeleteAnnouncementKeyboard(id)
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getConfirmDeleteAnnouncementKeyboard(id)
+    });
+  }
+}
+
+async function handleDeleteAnnouncement(ctx, id) {
+  if (!(await ensureAdmin(ctx))) return;
+
+  const ann = await getAnnouncementById(id);
+  if (!ann) {
+    await safeAnswerCallback(ctx, { text: 'Announcement not found.' });
+    return;
+  }
+
+  await deleteAnnouncement(id);
+  await safeAnswerCallback(ctx, {
+    text: `Announcement "${ann.title.slice(0, 20)}" deleted permanently!`
+  });
+
+  await handleManageAnnouncements(ctx);
+}
+
 module.exports = {
   isUserAdmin,
   handleAdminMenu,
@@ -1083,5 +1204,9 @@ module.exports = {
   handleManageResourcesListByBeyond,
   handleViewResource,
   handleConfirmDeleteResource,
-  handleDeleteResource
+  handleDeleteResource,
+  handleManageAnnouncements,
+  handleViewAnnouncement,
+  handleConfirmDeleteAnnouncement,
+  handleDeleteAnnouncement
 };

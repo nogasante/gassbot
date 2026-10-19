@@ -52,7 +52,11 @@ const {
   handleManageResourcesListByBeyond,
   handleViewResource,
   handleConfirmDeleteResource,
-  handleDeleteResource
+  handleDeleteResource,
+  handleManageAnnouncements,
+  handleViewAnnouncement,
+  handleConfirmDeleteAnnouncement,
+  handleDeleteAnnouncement
 } = require('./handlers/admin');
 const {
   handleRequestMenu,
@@ -76,7 +80,9 @@ const {
   adminEditCourseCodeConversation,
   adminEditResourceTitleConversation,
   adminEditCategoryLabelConversation,
-  adminEditResourceTypeLabelConversation
+  adminEditResourceTypeLabelConversation,
+  adminEditAnnouncementTitleConversation,
+  adminEditAnnouncementContentConversation
 } = require('./conversations/adminManagementConversations');
 const { handleSendResourceFile } = require('./handlers/academic');
 const { getMainMenuKeyboard } = require('./keyboards/mainMenu');
@@ -101,6 +107,8 @@ function createBot(token = config.botToken) {
   bot.use(createConversation(adminEditResourceTitleConversation));
   bot.use(createConversation(adminEditCategoryLabelConversation));
   bot.use(createConversation(adminEditResourceTypeLabelConversation));
+  bot.use(createConversation(adminEditAnnouncementTitleConversation));
+  bot.use(createConversation(adminEditAnnouncementContentConversation));
 
   // Global Error Handler
   bot.catch((err) => {
@@ -383,6 +391,41 @@ Your request has been received. You will be sent the file once an executive uplo
   bot.callbackQuery(/^admin_req_reject_(\d+)$/, async (ctx) => {
     const requestId = parseInt(ctx.match[1], 10);
     await handleModerateRequest(ctx, requestId, 'reject');
+  });
+
+  // Admin Announcements Management
+  bot.callbackQuery('admin_manage_announcements', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleManageAnnouncements(ctx);
+  });
+
+  bot.callbackQuery(/^admin_ann_view_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const id = parseInt(ctx.match[1], 10);
+    await handleViewAnnouncement(ctx, id);
+  });
+
+  bot.callbackQuery(/^admin_ann_edit_title_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    ctx.session.editAnnouncementId = parseInt(ctx.match[1], 10);
+    await ctx.conversation.enter('adminEditAnnouncementTitleConversation');
+  });
+
+  bot.callbackQuery(/^admin_ann_edit_content_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    ctx.session.editAnnouncementId = parseInt(ctx.match[1], 10);
+    await ctx.conversation.enter('adminEditAnnouncementContentConversation');
+  });
+
+  bot.callbackQuery(/^admin_ann_del_confirm_(\d+)$/, async (ctx) => {
+    const id = parseInt(ctx.match[1], 10);
+    await handleDeleteAnnouncement(ctx, id);
+  });
+
+  bot.callbackQuery(/^admin_ann_del_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const id = parseInt(ctx.match[1], 10);
+    await handleConfirmDeleteAnnouncement(ctx, id);
   });
 
   bot.callbackQuery('admin_broadcast', async (ctx) => {

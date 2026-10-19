@@ -206,6 +206,47 @@ describe('GASS Services (Shared Business Logic)', () => {
       expect(result.successCount).to.be.at.least(1);
       expect(sentCount).to.be.at.least(1);
     });
+
+    it('should retrieve announcement by id via getAnnouncementById', async () => {
+      const created = await announcementService.createAnnouncement({
+        title: 'Freshers Orientation',
+        content: 'Orientation ceremony at College of Science auditorium.',
+        priority: 'event',
+        targetLevel: 100
+      });
+      const fetched = await announcementService.getAnnouncementById(created.id);
+      expect(fetched).to.exist;
+      expect(fetched.title).to.equal('Freshers Orientation');
+    });
+
+    it('should update announcement fields via updateAnnouncement', async () => {
+      const created = await announcementService.createAnnouncement({
+        title: 'Original Title',
+        content: 'Original Content',
+        priority: 'normal'
+      });
+      const updated = await announcementService.updateAnnouncement(created.id, {
+        title: 'Updated Title',
+        content: 'Updated Content',
+        priority: 'urgent'
+      });
+      expect(updated).to.exist;
+      expect(updated.title).to.equal('Updated Title');
+      expect(updated.priority).to.equal('urgent');
+    });
+
+    it('should delete announcement via deleteAnnouncement', async () => {
+      const created = await announcementService.createAnnouncement({
+        title: 'To Be Deleted',
+        content: 'Temporary announcement'
+      });
+      const deleted = await announcementService.deleteAnnouncement(created.id);
+      expect(deleted).to.exist;
+      expect(deleted.id).to.equal(created.id);
+
+      const check = await announcementService.getAnnouncementById(created.id);
+      expect(check).to.be.null;
+    });
   });
 
   describe('Platform Stats Service', () => {

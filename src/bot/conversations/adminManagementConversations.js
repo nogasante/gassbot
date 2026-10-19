@@ -3,6 +3,7 @@ const { createCourse, getCourseById, updateCourse, getDistinctLevels } = require
 const { createBeyondCategory, getBeyondCategoryByKey, updateBeyondCategory } = require('../../services/categoryService');
 const { createResourceType, getResourceTypeByKey, updateResourceType } = require('../../services/resourceTypeService');
 const { getResourceById, updateResource } = require('../../services/resourceService');
+const { getAnnouncementById, updateAnnouncement } = require('../../services/announcementService');
 const { getUserByTelegramId } = require('../../services/userService');
 const { isUserAdmin } = require('../handlers/admin');
 const { getAdminPanelKeyboard } = require('../keyboards/admin');
@@ -713,6 +714,147 @@ async function adminAddTopicConversation(conversation, ctx) {
   }
 }
 
+async function adminEditAnnouncementTitleConversation(conversation, ctx) {
+  const telegramId = ctx.from.id;
+  const dbUser = await conversation.external(() => getUserByTelegramId(telegramId));
+  if (!isUserAdmin(telegramId, dbUser)) {
+    await ctx.reply('⛔ Access denied.');
+    return;
+  }
+
+  let announcementId = (conversation.session && conversation.session.editAnnouncementId)
+    || (ctx.session && ctx.session.editAnnouncementId)
+    || (ctx.match && ctx.match[1])
+    || (ctx.callbackQuery?.data?.match(/^admin_ann_edit_title_(\d+)$/)?.[1]);
+  announcementId = parseInt(announcementId, 10);
+
+  const ann = await conversation.external(() => getAnnouncementById(announcementId));
+  if (!ann) {
+    await ctx.reply('❌ Announcement not found.');
+    return;
+  }
+
+  const cancelKb = new InlineKeyboard().text('❌ Cancel', 'admin_edit_cancel');
+
+  await ctx.reply(
+    `✏️ *Edit Announcement Title*\n━━━━━━━━━━━━━━━━━━\n` +
+    `Current Title: *${escapeMarkdown(ann.title)}*\n\n` +
+    `👉 Enter the *new announcement title*:\n\n_(Send /cancel to abort)_`,
+    { parse_mode: 'Markdown', reply_markup: cancelKb }
+  );
+
+  const input = await conversation.waitFor([':text', 'callback_query:data']);
+  if (input.callbackQuery) {
+    await input.answerCallbackQuery();
+    await input.editMessageText('❌ Edit cancelled.');
+    return;
+  }
+
+  const newTitle = input.message.text.trim();
+  if (newTitle.toLowerCase() === '/cancel' || newTitle.startsWith('/')) {
+    await ctx.reply('❌ Edit cancelled.');
+    return;
+  }
+
+  if (newTitle.length < 3) {
+    await ctx.reply('❌ Announcement title must be at least 3 characters. Edit cancelled.');
+    return;
+  }
+
+  try {
+    const updated = await conversation.external(() => updateAnnouncement(announcementId, { title: newTitle }));
+    await ctx.reply(
+      `🎉 *Announcement Title Updated Successfully!*\n━━━━━━━━━━━━━━━━━━\n` +
+      `📌 *New Title:* ${escapeMarkdown(updated.title)}`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: new InlineKeyboard()
+          .text('🔍 View Announcement', `admin_ann_view_${announcementId}`)
+          .text('🔙 Back to Announcements', 'admin_manage_announcements')
+          .row()
+          .text('🏠 Admin Panel', 'menu_admin')
+      }
+    );
+  } catch (err) {
+    console.error('Error updating announcement title:', err);
+    await ctx.reply('❌ Failed to update announcement title.');
+  } finally {
+    if (ctx.session) delete ctx.session.editAnnouncementId;
+    if (conversation.session) delete conversation.session.editAnnouncementId;
+  }
+}
+
+async function adminEditAnnouncementContentConversation(conversation, ctx) {
+  const telegramId = ctx.from.id;
+  const dbUser = await conversation.external(() => getUserByTelegramId(telegramId));
+  if (!isUserAdmin(telegramId, dbUser)) {
+    await ctx.reply('⛔ Access denied.');
+    return;
+  }
+
+  let announcementId = (conversation.session && conversation.session.editAnnouncementId)
+    || (ctx.session && ctx.session.editAnnouncementId)
+    || (ctx.match && ctx.match[1])
+    || (ctx.callbackQuery?.data?.match(/^admin_ann_edit_content_(\d+)$/)?.[1]);
+  announcementId = parseInt(announcementId, 10);
+
+  const ann = await conversation.external(() => getAnnouncementById(announcementId));
+  if (!ann) {
+    await ctx.reply('❌ Announcement not found.');
+    return;
+  }
+
+  const cancelKb = new InlineKeyboard().text('❌ Cancel', 'admin_edit_cancel');
+
+  await ctx.reply(
+    `✏️ *Edit Announcement Content*\n━━━━━━━━━━━━━━━━━━\n` +
+    `📌 Title: *${escapeMarkdown(ann.title)}*\n\n` +
+    `👉 Enter the *new content / body* for this announcement:\n\n_(Send /cancel to abort)_`,
+    { parse_mode: 'Markdown', reply_markup: cancelKb }
+  );
+
+  const input = await conversation.waitFor([':text', 'callback_query:data']);
+  if (input.callbackQuery) {
+    await input.answerCallbackQuery();
+    await input.editMessageText('❌ Edit cancelled.');
+    return;
+  }
+
+  const newContent = input.message.text.trim();
+  if (newContent.toLowerCase() === '/cancel' || newContent.startsWith('/')) {
+    await ctx.reply('❌ Edit cancelled.');
+    return;
+  }
+
+  if (newContent.length < 5) {
+    await ctx.reply('❌ Announcement content cannot be empty. Edit cancelled.');
+    return;
+  }
+
+  try {
+    const updated = await conversation.external(() => updateAnnouncement(announcementId, { content: newContent }));
+    await ctx.reply(
+      `🎉 *Announcement Content Updated Successfully!*\n━━━━━━━━━━━━━━━━━━\n` +
+      `📌 *Title:* ${escapeMarkdown(updated.title)}\n\n` +
+      `📝 *Updated Content:*\n${escapeMarkdown(updated.content)}`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: new InlineKeyboard()
+          .text('🔍 View Announcement', `admin_ann_view_${announcementId}`)
+          .text('🔙 Back to Announcements', 'admin_manage_announcements')
+          .row()
+          .text('🏠 Admin Panel', 'menu_admin')
+      }
+    );
+  } catch (err) {
+    console.error('Error updating announcement content:', err);
+    await ctx.reply('❌ Failed to update announcement content.');
+  } finally {
+    if (ctx.session) delete ctx.session.editAnnouncementId;
+    if (conversation.session) delete conversation.session.editAnnouncementId;
+  }
+}
+
 module.exports = {
   adminAddCourseConversation,
   adminAddCategoryConversation,
@@ -722,5 +864,7 @@ module.exports = {
   adminEditCourseCodeConversation,
   adminEditResourceTitleConversation,
   adminEditCategoryLabelConversation,
-  adminEditResourceTypeLabelConversation
+  adminEditResourceTypeLabelConversation,
+  adminEditAnnouncementTitleConversation,
+  adminEditAnnouncementContentConversation
 };
