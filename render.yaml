@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: gassbot
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: BOT_MODE
+        value: polling
+      - key: AUTO_MIGRATE
+        value: "true"
+      - key: MINI_APP_URL
+        value: https://gassbot.vercel.app
+      - key: AI_ENABLED
+        value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gassbot-db
+          property: connectionString
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_TELEGRAM_IDS
+        sync: false
