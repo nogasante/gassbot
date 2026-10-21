@@ -1,5 +1,11 @@
 const { config } = require('../../config');
-const { getUserByTelegramId } = require('../../services/userService');
+const {
+  getUserByTelegramId,
+  getUserByUsername,
+  listAllAdmins,
+  promoteUserToAdmin,
+  demoteAdmin
+} = require('../../services/userService');
 const { getPendingRequests, getRequestById, updateRequestStatus } = require('../../services/requestService');
 const { getPlatformStats } = require('../../services/statsService');
 const {
@@ -20,7 +26,10 @@ const {
   getRequestModerationKeyboard,
   getManageAnnouncementsKeyboard,
   getAnnouncementDetailsKeyboard,
-  getConfirmDeleteAnnouncementKeyboard
+  getConfirmDeleteAnnouncementKeyboard,
+  getManageAdminsKeyboard,
+  getAdminDetailsKeyboard,
+  getConfirmDemoteAdminKeyboard
 } = require('../keyboards/admin');
 const { escapeMarkdown } = require('../utils/format');
 const { InlineKeyboard } = require('grammy');
@@ -1173,6 +1182,208 @@ async function handleDeleteAnnouncement(ctx, id) {
   await handleManageAnnouncements(ctx);
 }
 
+async function handleManageAdmins(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
+
+  const admins = await listAllAdmins();
+  const currentUserId = ctx.from ? ctx.from.id : null;
+
+  const text =
+`👥 *Administrator & Executive Team*
+━━━━━━━━━━━━━━━━━━
+Manage system administrators, executive access, and delegation of departmental responsibilities.
+
+👑 *Root Superadmins:* Configured via secure environment variables.
+🛡️ *Appointed Admins:* Delegated executives with full management privileges.
+
+Select an administrator below to view permissions or remove access:`;
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getManageAdminsKeyboard(admins, currentUserId)
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getManageAdminsKeyboard(admins, currentUserId)
+    });
+  }
+}
+
+async function handleViewAdmin(ctx, targetTelegramId) {
+  if (!(await ensureAdmin(ctx))) return;
+
+  const tid = Number(targetTelegramId);
+  const admins = await listAllAdmins();
+  const targetAdmin = admins.find(a => Number(a.telegram_id) === tid) || await getUserByTelegramId(tid);
+
+  if (!targetAdmin) {
+    await safeAnswerCallback(ctx, { text: 'Administrator not found.' });
+    return;
+  }
+
+  const superAdmins = (config.adminTelegramIds || []).map(Number);
+  const isSuper = superAdmins.includes(tid);
+  const currentUserId = ctx.from ? Number(ctx.from.id) : null;
+  const isSelf = currentUserId === tid;
+
+  const fullName = [targetAdmin.first_name, targetAdmin.last_name].filter(Boolean).join(' ') || 'Unnamed Admin';
+  const roleDisplay = isSuper ? '👑 Root Superadmin' : (targetAdmin.role === 'executive' ? '🛡️ Executive' : '🛡️ Appointed Administrator');
+  const userHandle = targetAdmin.username ? `@${escapeMarkdown(targetAdmin.username)}` : 'None';
+  const appointedDate = targetAdmin.created_at
+    ? new Date(targetAdmin.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : 'System Inception';
+
+  const text =
+`👤 *Administrator Profile*
+━━━━━━━━━━━━━━━━━━
+🏷️ *Name:* ${escapeMarkdown(fullName)}
+💬 *Username:* ${userHandle}
+🆔 *Telegram ID:* \`${targetAdmin.telegram_id}\`
+🎖️ *Rank / Role:* ${roleDisplay}
+📅 *Appointed:* ${appointedDate}
+
+${isSuper ? '🔒 _Root Superadmins cannot be removed via Telegram (configured via system environment)._' : (isSelf ? 'ℹ️ _This is your own administrator account._' : '⚠️ _You can remove this user’s administrator privileges at any time._')}`;
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getAdminDetailsKeyboard(targetAdmin, isSuper, isSelf)
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getAdminDetailsKeyboard(targetAdmin, isSuper, isSelf)
+    });
+  }
+}
+
+async function handleConfirmDemoteAdmin(ctx, targetTelegramId) {
+  if (!(await ensureAdmin(ctx))) return;
+
+  const tid = Number(targetTelegramId);
+  const superAdmins = (config.adminTelegramIds || []).map(Number);
+  if (superAdmins.includes(tid)) {
+    await safeAnswerCallback(ctx, { text: '⛔ Cannot demote a Root Superadmin.', show_alert: true });
+    return;
+  }
+
+  const currentUserId = ctx.from ? Number(ctx.from.id) : null;
+  if (currentUserId === tid) {
+    await safeAnswerCallback(ctx, { text: '⛔ You cannot remove your own admin access.', show_alert: true });
+    return;
+  }
+
+  const targetAdmin = await getUserByTelegramId(tid);
+  const name = targetAdmin ? ([targetAdmin.first_name, targetAdmin.last_name].filter(Boolean).join(' ') || `@${targetAdmin.username || tid}`) : `ID ${tid}`;
+
+  const text =
+`⚠️ *Remove Administrator Privileges*
+━━━━━━━━━━━━━━━━━━
+Are you sure you want to remove admin access from *${escapeMarkdown(name)}* (\`${tid}\`)?
+
+They will be returned to normal student access and will no longer have access to the Executive & Admin Panel.`;
+
+  if (ctx.callbackQuery) {
+    await ctx.editMessageText(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getConfirmDemoteAdminKeyboard(tid)
+    });
+  } else {
+    await ctx.reply(text, {
+      parse_mode: 'Markdown',
+      reply_markup: getConfirmDemoteAdminKeyboard(tid)
+    });
+  }
+}
+
+async function handleDemoteAdmin(ctx, targetTelegramId) {
+  if (!(await ensureAdmin(ctx))) return;
+
+  const tid = Number(targetTelegramId);
+  try {
+    await demoteAdmin(tid, { demotedBy: ctx.from ? ctx.from.id : null });
+    await safeAnswerCallback(ctx, { text: '✅ Admin privileges removed successfully.', show_alert: true });
+  } catch (err) {
+    await safeAnswerCallback(ctx, { text: `❌ ${err.message}`, show_alert: true });
+  }
+
+  await handleManageAdmins(ctx);
+}
+
+async function handleAddAdminCommand(ctx) {
+  if (!(await ensureAdmin(ctx))) return;
+
+  const text = ctx.message?.text || '';
+  const parts = text.trim().split(/\s+/);
+  const target = parts[1];
+
+  if (!target) {
+    await ctx.conversation.enter('adminAddAdminConversation');
+    return;
+  }
+
+  let telegramId = null;
+  let username = null;
+  let firstName = 'Admin';
+  let lastName = '';
+
+  if (target.startsWith('@') || isNaN(Number(target))) {
+    const cleanUsername = target.replace(/^@/, '').trim();
+    const existing = await getUserByUsername(cleanUsername);
+    if (!existing) {
+      await ctx.reply(
+        `⚠️ *User Not Found:* Could not find any registered user with username *@${escapeMarkdown(cleanUsername)}*.\n\n` +
+        `If they haven't started GASSBot yet, please pass their numeric Telegram ID instead (e.g. \`/addadmin 123456789\`), or ask them to tap /start first.`,
+        { parse_mode: 'Markdown' }
+      );
+      return;
+    }
+    telegramId = Number(existing.telegram_id);
+    username = existing.username;
+    firstName = existing.first_name || 'Admin';
+    lastName = existing.last_name || '';
+  } else {
+    telegramId = Number(target);
+  }
+
+  try {
+    const user = await promoteUserToAdmin({
+      telegramId,
+      username,
+      firstName,
+      lastName,
+      role: 'admin',
+      promotedBy: ctx.from.id
+    });
+
+    try {
+      if (ctx.api) {
+        await ctx.api.sendMessage(
+          telegramId,
+          `🎉 *Privilege Escalation Notice*\n━━━━━━━━━━━━━━━━━━\n` +
+          `You have been granted *Administrator* privileges in GASSBot by an Executive.\n\n` +
+          `Tap /admin or open the menu to access the Executive & Admin Panel.`,
+          { parse_mode: 'Markdown' }
+        );
+      }
+    } catch (notifyErr) {}
+
+    const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || `@${user.username || user.telegram_id}`;
+    await ctx.reply(
+      `✅ *Admin Added Successfully*\n━━━━━━━━━━━━━━━━━━\n` +
+      `User: *${escapeMarkdown(name)}*\n` +
+      `Telegram ID: \`${user.telegram_id}\`\n` +
+      `Role: *${user.role.toUpperCase()}*\n\n` +
+      `They can now use /admin to access all executive features.`,
+      { parse_mode: 'Markdown' }
+    );
+  } catch (err) {
+    await ctx.reply(`❌ *Failed to add admin:* ${escapeMarkdown(err.message)}`, { parse_mode: 'Markdown' });
+  }
+}
+
 module.exports = {
   isUserAdmin,
   handleAdminMenu,
@@ -1208,5 +1419,10 @@ module.exports = {
   handleManageAnnouncements,
   handleViewAnnouncement,
   handleConfirmDeleteAnnouncement,
-  handleDeleteAnnouncement
+  handleDeleteAnnouncement,
+  handleManageAdmins,
+  handleViewAdmin,
+  handleConfirmDemoteAdmin,
+  handleDemoteAdmin,
+  handleAddAdminCommand
 };

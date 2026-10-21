@@ -12,8 +12,9 @@ function getAdminPanelKeyboard(pendingCount = 0) {
     .text('📢 Announcements', 'admin_manage_announcements')
     .row()
     .text('🏷️ Resource Types', 'admin_manage_types')
-    .text('📢 Quick Broadcast', 'admin_broadcast')
+    .text('👥 Manage Admins', 'admin_manage_admins')
     .row()
+    .text('📢 Quick Broadcast', 'admin_broadcast')
     .text('🏠 Main Menu', 'menu_main');
 }
 
@@ -246,6 +247,41 @@ function getConfirmDeleteAnnouncementKeyboard(announcementId) {
     .text('❌ Cancel', `admin_ann_view_${announcementId}`);
 }
 
+function getManageAdminsKeyboard(admins = [], currentUserId = null) {
+  const kb = new InlineKeyboard()
+    .text('➕ Add New Admin', 'admin_add_admin')
+    .row();
+
+  admins.forEach((admin) => {
+    const isSuper = admin.is_superadmin;
+    const badge = isSuper ? '👑' : '🛡️';
+    const name = [admin.first_name, admin.last_name].filter(Boolean).join(' ') || (admin.username ? `@${admin.username}` : `ID: ${admin.telegram_id}`);
+    const isSelf = currentUserId && Number(currentUserId) === Number(admin.telegram_id);
+    const suffix = isSelf ? ' (You)' : '';
+    const label = `${badge} ${name}${suffix}`;
+    kb.text(label, `admin_view_admin_${admin.telegram_id}`).row();
+  });
+
+  kb.text('🔙 Back to Admin Panel', 'menu_admin');
+  return kb;
+}
+
+function getAdminDetailsKeyboard(adminUser, isSuperadmin = false, isSelf = false) {
+  const kb = new InlineKeyboard();
+  if (!isSuperadmin && !isSelf) {
+    kb.text('🗑️ Remove Admin Privileges', `admin_demote_confirm_${adminUser.telegram_id}`).row();
+  }
+  kb.text('🔙 Back to Admins', 'admin_manage_admins')
+    .text('🏠 Admin Panel', 'menu_admin');
+  return kb;
+}
+
+function getConfirmDemoteAdminKeyboard(telegramId) {
+  return new InlineKeyboard()
+    .text('⚠️ Yes, Remove Admin', `admin_demote_do_${telegramId}`)
+    .text('❌ Cancel', `admin_view_admin_${telegramId}`);
+}
+
 module.exports = {
   getAdminPanelKeyboard,
   getManageCoursesKeyboard,
@@ -261,5 +297,8 @@ module.exports = {
   getRequestModerationKeyboard,
   getManageAnnouncementsKeyboard,
   getAnnouncementDetailsKeyboard,
-  getConfirmDeleteAnnouncementKeyboard
+  getConfirmDeleteAnnouncementKeyboard,
+  getManageAdminsKeyboard,
+  getAdminDetailsKeyboard,
+  getConfirmDemoteAdminKeyboard
 };

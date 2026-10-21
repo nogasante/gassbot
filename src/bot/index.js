@@ -56,7 +56,12 @@ const {
   handleManageAnnouncements,
   handleViewAnnouncement,
   handleConfirmDeleteAnnouncement,
-  handleDeleteAnnouncement
+  handleDeleteAnnouncement,
+  handleManageAdmins,
+  handleViewAdmin,
+  handleConfirmDemoteAdmin,
+  handleDemoteAdmin,
+  handleAddAdminCommand
 } = require('./handlers/admin');
 const {
   handleRequestMenu,
@@ -82,7 +87,8 @@ const {
   adminEditCategoryLabelConversation,
   adminEditResourceTypeLabelConversation,
   adminEditAnnouncementTitleConversation,
-  adminEditAnnouncementContentConversation
+  adminEditAnnouncementContentConversation,
+  adminAddAdminConversation
 } = require('./conversations/adminManagementConversations');
 const { handleSendResourceFile } = require('./handlers/academic');
 const { getMainMenuKeyboard } = require('./keyboards/mainMenu');
@@ -109,6 +115,7 @@ function createBot(token = config.botToken) {
   bot.use(createConversation(adminEditResourceTypeLabelConversation));
   bot.use(createConversation(adminEditAnnouncementTitleConversation));
   bot.use(createConversation(adminEditAnnouncementContentConversation));
+  bot.use(createConversation(adminAddAdminConversation));
 
   // Global Error Handler
   bot.catch((err) => {
@@ -131,6 +138,8 @@ function createBot(token = config.botToken) {
   bot.command('help', handleHelp);
   bot.command('about', handleHelp);
   bot.command('admin', handleAdminMenu);
+  bot.command('admins', handleManageAdmins);
+  bot.command('addadmin', handleAddAdminCommand);
 
   // Persistent 3-Column Reply Keyboard Listeners
   bot.hears(['📚 Academic', '📚 Academic Resources'], handleAcademicMenu);
@@ -426,6 +435,34 @@ Your request has been received. You will be sent the file once an executive uplo
     await ctx.answerCallbackQuery();
     const id = parseInt(ctx.match[1], 10);
     await handleConfirmDeleteAnnouncement(ctx, id);
+  });
+
+  // Admin Management Flow
+  bot.callbackQuery('admin_manage_admins', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await handleManageAdmins(ctx);
+  });
+
+  bot.callbackQuery('admin_add_admin', async (ctx) => {
+    await ctx.answerCallbackQuery();
+    await ctx.conversation.enter('adminAddAdminConversation');
+  });
+
+  bot.callbackQuery(/^admin_view_admin_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const tid = parseInt(ctx.match[1], 10);
+    await handleViewAdmin(ctx, tid);
+  });
+
+  bot.callbackQuery(/^admin_demote_confirm_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const tid = parseInt(ctx.match[1], 10);
+    await handleConfirmDemoteAdmin(ctx, tid);
+  });
+
+  bot.callbackQuery(/^admin_demote_do_(\d+)$/, async (ctx) => {
+    const tid = parseInt(ctx.match[1], 10);
+    await handleDemoteAdmin(ctx, tid);
   });
 
   bot.callbackQuery('admin_broadcast', async (ctx) => {

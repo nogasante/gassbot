@@ -4,7 +4,7 @@ const { createBeyondCategory, getBeyondCategoryByKey, updateBeyondCategory } = r
 const { createResourceType, getResourceTypeByKey, updateResourceType } = require('../../services/resourceTypeService');
 const { getResourceById, updateResource } = require('../../services/resourceService');
 const { getAnnouncementById, updateAnnouncement } = require('../../services/announcementService');
-const { getUserByTelegramId } = require('../../services/userService');
+const { getUserByTelegramId, getUserByUsername, promoteUserToAdmin } = require('../../services/userService');
 const { isUserAdmin } = require('../handlers/admin');
 const { getAdminPanelKeyboard } = require('../keyboards/admin');
 const { escapeMarkdown } = require('../utils/format');
@@ -855,6 +855,129 @@ async function adminEditAnnouncementContentConversation(conversation, ctx) {
   }
 }
 
+async function adminAddAdminConversation(conversation, ctx) {
+  const telegramId = ctx.from.id;
+  const dbUser = await conversation.external(() => getUserByTelegramId(telegramId));
+  if (!isUserAdmin(telegramId, dbUser)) {
+    await ctx.reply('⛔ Access denied.');
+    return;
+  }
+
+  await ctx.reply(
+    `👥 *Appoint New Administrator*\n━━━━━━━━━━━━━━━━━━\n` +
+    `Please send the *Telegram ID* (e.g. \`123456789\`) or *@username* of the student or executive to grant Admin privileges.\n\n` +
+    `💡 _Tip: You can ask the user to forward a message or check @userinfobot to get their numeric ID._\n` +
+    `_(Send /cancel to abort)_`,
+    { parse_mode: 'Markdown' }
+  );
+
+  const inputMsg = await conversation.waitFor(':text');
+  const rawInput = inputMsg.message.text.trim();
+
+  if (rawInput.toLowerCase() === '/cancel' || rawInput.startsWith('/cancel')) {
+    await ctx.reply('❌ Add admin operation cancelled.');
+    return;
+  }
+
+  let targetId = null;
+  let targetUsername = null;
+  let firstName = 'Admin';
+  let lastName = '';
+
+  if (rawInput.startsWith('@') || isNaN(Number(rawInput))) {
+    const cleanUsername = rawInput.replace(/^@/, '').trim();
+    const existing = await conversation.external(() => getUserByUsername(cleanUsername));
+    if (!existing) {
+      await ctx.reply(
+        `⚠️ *User Not Found in Database:* Could not find a registered user with username *@${escapeMarkdown(cleanUsername)}*.\n\n` +
+        `If they haven't messaged GASSBot before, please ask for their numeric Telegram ID (from @userinfobot) so they can be pre-registered as Admin.`,
+        { parse_mode: 'Markdown' }
+      );
+      return;
+    }
+    targetId = Number(existing.telegram_id);
+    targetUsername = existing.username;
+    firstName = existing.first_name || 'Admin';
+    lastName = existing.last_name || '';
+  } else {
+    targetId = Number(rawInput);
+    if (!targetId || targetId < 1000) {
+      await ctx.reply('❌ Invalid Telegram ID. Must be a valid numeric ID.');
+      return;
+    }
+    const existing = await conversation.external(() => getUserByTelegramId(targetId));
+    if (existing) {
+      targetUsername = existing.username;
+      firstName = existing.first_name || firstName;
+      lastName = existing.last_name || lastName;
+    }
+  }
+
+  const confirmKb = new InlineKeyboard()
+    .text('✅ Confirm & Grant Access', 'admin_add_confirm')
+    .text('❌ Cancel', 'admin_add_cancel');
+
+  await ctx.reply(
+    `👉 *Confirm Administrator Appointment*\n━━━━━━━━━━━━━━━━━━\n` +
+    `User: *${escapeMarkdown(firstName)} ${escapeMarkdown(lastName)}*\n` +
+    `Username: ${targetUsername ? `@${escapeMarkdown(targetUsername)}` : 'None'}\n` +
+    `Telegram ID: \`${targetId}\`\n\n` +
+    `This will give them full management access over courses, materials, announcements, and requests.`,
+    {
+      parse_mode: 'Markdown',
+      reply_markup: confirmKb
+    }
+  );
+
+  const confirmCtx = await conversation.waitForCallbackQuery(/^admin_add_(confirm|cancel)$/);
+  await confirmCtx.answerCallbackQuery();
+
+  if (confirmCtx.callbackQuery.data === 'admin_add_cancel') {
+    await ctx.reply('❌ Operation cancelled. No privileges were granted.');
+    return;
+  }
+
+  try {
+    const promoted = await conversation.external(() =>
+      promoteUserToAdmin({
+        telegramId: targetId,
+        username: targetUsername,
+        firstName,
+        lastName,
+        role: 'admin',
+        promotedBy: telegramId
+      })
+    );
+
+    try {
+      if (ctx.api) {
+        await conversation.external(() =>
+          ctx.api.sendMessage(
+            targetId,
+            `🎉 *Administrator Privileges Granted*\n━━━━━━━━━━━━━━━━━━\n` +
+            `You have been granted *Administrator* access to GASSBot by an Executive.\n\n` +
+            `Type /admin or open the menu to access the Executive & Admin Panel.`,
+            { parse_mode: 'Markdown' }
+          )
+        );
+      }
+    } catch (e) {}
+
+    const name = [promoted.first_name, promoted.last_name].filter(Boolean).join(' ') || `@${promoted.username || promoted.telegram_id}`;
+    await ctx.reply(
+      `🎉 *Success! Administrator Added*\n━━━━━━━━━━━━━━━━━━\n` +
+      `*${escapeMarkdown(name)}* (\`${promoted.telegram_id}\`) is now an active Administrator in GASSBot.\n\n` +
+      `They can now use /admin to access all moderation tools.`,
+      {
+        parse_mode: 'Markdown'
+      }
+    );
+  } catch (err) {
+    console.error('Error promoting admin:', err);
+    await ctx.reply(`❌ Failed to add administrator: ${escapeMarkdown(err.message)}`, { parse_mode: 'Markdown' });
+  }
+}
+
 module.exports = {
   adminAddCourseConversation,
   adminAddCategoryConversation,
@@ -866,5 +989,6 @@ module.exports = {
   adminEditCategoryLabelConversation,
   adminEditResourceTypeLabelConversation,
   adminEditAnnouncementTitleConversation,
-  adminEditAnnouncementContentConversation
+  adminEditAnnouncementContentConversation,
+  adminAddAdminConversation
 };

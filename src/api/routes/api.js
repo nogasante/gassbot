@@ -63,7 +63,12 @@ const {
   getBrandConfig
 } = require('../../services/settingsService');
 const { validateTelegramWebAppData } = require('../middleware/telegramAuth');
-const { findOrCreateUser } = require('../../services/userService');
+const {
+  findOrCreateUser,
+  promoteUserToAdmin,
+  demoteAdmin,
+  listAllAdmins
+} = require('../../services/userService');
 const { config } = require('../../config');
 const { query } = require('../../config/database');
 
@@ -130,6 +135,95 @@ router.post('/auth/telegram', async (req, res, next) => {
         academicLevel: dbUser.academic_level,
         role: dbUser.role
       }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// =======================================================
+// Administrator Management Endpoints
+// =======================================================
+router.get('/admins', async (req, res, next) => {
+  try {
+    const admins = await listAllAdmins();
+    return res.json({
+      success: true,
+      count: admins.length,
+      data: admins
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/admins', async (req, res, next) => {
+  try {
+    const { telegramId, username, firstName, lastName, role } = req.body;
+    if (!telegramId) {
+      return res.status(400).json({
+        success: false,
+        error: 'telegramId is required'
+      });
+    }
+
+    const tid = Number(telegramId);
+    if (!tid || isNaN(tid)) {
+      return res.status(400).json({
+        success: false,
+        error: 'telegramId must be a valid number'
+      });
+    }
+
+    const adminUser = await promoteUserToAdmin({
+      telegramId: tid,
+      username: username || null,
+      firstName: firstName || null,
+      lastName: lastName || null,
+      role: role || 'admin'
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Administrator appointed successfully',
+      data: adminUser
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/admins/:telegramId', async (req, res, next) => {
+  try {
+    const { telegramId } = req.params;
+    const tid = Number(telegramId);
+    if (!tid || isNaN(tid)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid telegramId parameter'
+      });
+    }
+
+    const superAdmins = (config.adminTelegramIds || []).map(Number);
+    if (superAdmins.includes(tid)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot demote a root superadmin configured in environment variables.'
+      });
+    }
+
+    const demoted = await demoteAdmin(tid);
+    if (!demoted) {
+      return res.status(404).json({
+        success: false,
+        error: 'Administrator not found'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Administrator privileges removed successfully',
+      data: demoted
     });
   } catch (err) {
     next(err);
