@@ -1,0 +1,27 @@
+name: Render 24/7 Keep-Alive
+
+on:
+  schedule:
+    # Runs every 10 minutes to prevent Render free-tier from sleeping
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping GASSBot Backend Health
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: |
+          echo "Pinging Render Backend..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 https://gassbot-bfbv.onrender.com/health)
+          echo "Render HTTP status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "✅ Render backend is active and healthy."
+          else
+            echo "⚠️ Render backend returned status $STATUS"
+          fi
+
+      - name: Ping Vercel Mini App
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://gassbot.vercel.app/api/health

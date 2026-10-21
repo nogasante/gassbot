@@ -3,6 +3,7 @@ const { getPool, closePool } = require('./config/database');
 const { runMigrations } = require('./database/migrate');
 const { createBot } = require('./bot');
 const { createServer } = require('./api/server');
+const { startKeepAlive } = require('./utils/keepAlive');
 
 async function main() {
   console.log(`=======================================================`);
@@ -77,9 +78,18 @@ async function main() {
     }
   }
 
+  // 5. Keep-Alive Service (Prevents Render Free-Tier from sleeping when inactive)
+  let keepAliveService = null;
+  if (config.env === 'production' || process.env.KEEP_ALIVE === 'true') {
+    keepAliveService = startKeepAlive();
+  }
+
   // Graceful Shutdown
   const shutdown = async () => {
     console.log('\nShutting down GASSBot gracefully...');
+    if (keepAliveService) {
+      keepAliveService.stop();
+    }
     if (bot && config.botMode === 'polling') {
       try {
         await bot.stop();
