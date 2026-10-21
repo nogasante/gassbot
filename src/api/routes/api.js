@@ -64,6 +64,38 @@ const {
 } = require('../../services/settingsService');
 const { validateTelegramWebAppData } = require('../middleware/telegramAuth');
 const { findOrCreateUser } = require('../../services/userService');
+const { config } = require('../../config');
+const { query } = require('../../config/database');
+
+// =======================================================
+// Health Check Endpoint
+// =======================================================
+router.get('/health', async (req, res) => {
+  let dbStatus = 'disconnected';
+  try {
+    if (config.databaseUrl) {
+      await query('SELECT 1;');
+      dbStatus = 'connected';
+    } else {
+      dbStatus = 'not_configured';
+    }
+  } catch (err) {
+    dbStatus = `error: ${err.message}`;
+  }
+
+  const brand = await getBrandConfig();
+
+  return res.json({
+    status: 'ok',
+    service: brand.name,
+    slogan: brand.slogan,
+    mode: config.botMode,
+    environment: config.env,
+    database: dbStatus,
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
 
 // =======================================================
 // 0. Telegram Mini App Authentication Endpoint
