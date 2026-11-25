@@ -171,10 +171,8 @@ async function handleSendResourceFile(ctx, resourceId) {
   await ctx.answerCallbackQuery({ text: 'Sending document...' });
   await incrementDownloadCount(resourceId);
 
-  const { getBrandConfig } = require('../../services/settingsService');
-  const brand = await getBrandConfig();
   const safeTitle = escapeMarkdown(resource.title);
-  const caption = `📄 *${safeTitle}*\n${resource.course_code ? `Course: ${escapeMarkdown(resource.course_code)}\n` : ''}Slogan: _"${escapeMarkdown(brand.slogan)}"_`;
+  const caption = `📄 *${safeTitle}*${resource.course_code ? `\n📚 ${escapeMarkdown(resource.course_code)}` : ''}`;
 
   if (resource.telegram_file_id) {
     try {
