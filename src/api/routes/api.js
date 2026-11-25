@@ -328,17 +328,19 @@ router.delete('/courses/:id', async (req, res, next) => {
 // =======================================================
 router.get('/resources', async (req, res, next) => {
   try {
-    const { course_id, beyond_category, search } = req.query;
-    if (search) {
-      const results = await searchResources(search);
+    const courseIdParam = req.query.course_id || req.query.courseId;
+    const beyondCatParam = req.query.beyond_category || req.query.beyondCategory;
+    const searchParam = req.query.search || req.query.q;
+    if (searchParam) {
+      const results = await searchResources(searchParam);
       return res.json({ success: true, count: results.length, data: results });
     }
-    if (beyond_category) {
-      const results = await getResourcesByBeyondCategory(beyond_category);
+    if (beyondCatParam) {
+      const results = await getResourcesByBeyondCategory(beyondCatParam);
       return res.json({ success: true, count: results.length, data: results });
     }
-    if (course_id) {
-      const results = await getResourcesByCourse(parseInt(course_id, 10));
+    if (courseIdParam) {
+      const results = await getResourcesByCourse(parseInt(courseIdParam, 10));
       return res.json({ success: true, count: results.length, data: results });
     }
     return res.status(400).json({ success: false, error: 'Specify search, course_id, or beyond_category filter.' });

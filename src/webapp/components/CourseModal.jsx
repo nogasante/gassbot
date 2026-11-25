@@ -41,7 +41,7 @@ export function CourseModal({ course, open, onClose, isBookmarked, onToggleBookm
   const fetchResources = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/resources?courseId=${course.id}`);
+      const res = await fetch(`/api/resources?course_id=${course.id}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setResources(data.data);
