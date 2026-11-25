@@ -171,7 +171,7 @@ async function getSavedResources(userId) {
      JOIN resources r ON sr.resource_id = r.id
      LEFT JOIN courses c ON r.course_id = c.id
      JOIN users u ON sr.user_id = u.id
-     WHERE u.id = $1 OR u.telegram_id = $1
+     WHERE u.telegram_id = $1::bigint OR ($1::bigint <= 2147483647 AND u.id = $1::int)
      ORDER BY sr.created_at DESC;`,
     [userId]
   );
