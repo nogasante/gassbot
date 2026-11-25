@@ -383,17 +383,23 @@ router.post('/resources/:id/send-telegram', async (req, res, next) => {
     }
 
     try {
+      const safeTitle = String(resource.title || '').replace(/[*_`\[\]]/g, '\\$&');
+      const fmt = (resource.file_format || '').toLowerCase();
       if (resource.telegram_file_id) {
-        await bot.api.sendDocument(userId, resource.telegram_file_id, {
-          caption: `📚 *${resource.title}*\n\n✅ Natively cached in your Telegram chat for offline study.`
-        });
+        const caption = `📄 *${safeTitle}*${resource.course_code ? `\n📚 ${resource.course_code}` : ''}`;
+        if (fmt === 'jpg' || fmt === 'jpeg' || fmt === 'png') {
+          await bot.api.sendPhoto(userId, resource.telegram_file_id, { caption, parse_mode: 'Markdown' });
+        } else {
+          await bot.api.sendDocument(userId, resource.telegram_file_id, { caption, parse_mode: 'Markdown' });
+        }
       } else {
         await bot.api.sendMessage(
           userId,
-          `📚 *${resource.title}*\n━━━━━━━━━━━━━━━━━━\n${resource.description || 'Verified academic resource.'}\n\n🔗 *Access Link:* ${resource.file_url}\n\n💡 *Offline Tip:* Materials in your Telegram chat remain accessible offline!`,
+          `📄 *${safeTitle}*\n\n🔗 *Access Link:* ${resource.file_url}`,
           { parse_mode: 'Markdown' }
         );
       }
+      await incrementDownloadCount(resourceId);
       return res.json({ success: true, delivered: true, message: 'Resource delivered to your Telegram chat' });
     } catch (telegramErr) {
       return res.json({

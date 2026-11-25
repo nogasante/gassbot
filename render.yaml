@@ -18,7 +18,7 @@ services:
       - key: AUTO_MIGRATE
         value: "true"
       - key: MINI_APP_URL
-        value: https://gassbot.vercel.app
+        value: https://gassbot-bfbv.onrender.com/portal
       - key: AI_ENABLED
         value: "false"
       - key: DATABASE_URL

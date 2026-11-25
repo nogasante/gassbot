@@ -7,7 +7,7 @@ const config = {
   botMode: process.env.BOT_MODE || 'polling', // 'polling' or 'webhook'
   webhookDomain: process.env.WEBHOOK_DOMAIN || '', // e.g. https://gassbot.onrender.com
   webhookPath: process.env.WEBHOOK_PATH || '/webhook',
-  miniAppUrl: process.env.MINI_APP_URL || 'https://gassbot.vercel.app',
+  miniAppUrl: process.env.MINI_APP_URL || 'https://gassbot-bfbv.onrender.com/portal',
   appPlayStoreUrl: process.env.GASSA_PLAYSTORE_URL || 'https://play.google.com/store/apps/details?id=gasshub.android',
   databaseUrl: process.env.DATABASE_URL || '',
   adminTelegramIds: (process.env.ADMIN_TELEGRAM_IDS || '')

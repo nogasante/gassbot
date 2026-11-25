@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { sendResourceToTelegram } from '../utils/telegramSend';
 
 function IconSearch() {
   return (
@@ -234,13 +235,21 @@ export function SearchTab({ isBookmarked, onToggleBookmark, onSelectCourse }) {
                         >
                           <IconBookmark active={saved} />
                         </button>
+                        <button
+                          type="button"
+                          className="walt-row-open-btn"
+                          onClick={() => sendResourceToTelegram(res)}
+                          title="Send directly to your Telegram chat"
+                        >
+                          <span>📥 Bot</span>
+                        </button>
                         <a
                           href={res.file_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="walt-row-open-btn"
+                          className="walt-icon-btn"
+                          title="Open in Drive"
                         >
-                          <span>Open</span>
                           <IconExternalLink />
                         </a>
                       </div>
