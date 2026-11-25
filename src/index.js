@@ -57,6 +57,18 @@ async function main() {
 
   // 4. Start Bot in Polling or Webhook Mode
   if (bot && config.botToken) {
+    // Configure Telegram's bottom-left Menu Button to launch the Mini App
+    const webAppUrl = config.miniAppUrl || 'https://gassbot.vercel.app';
+    bot.api.setChatMenuButton({
+      menu_button: {
+        type: 'web_app',
+        text: 'Open App',
+        web_app: { url: webAppUrl }
+      }
+    }).catch((menuErr) => {
+      console.warn('⚠️  Could not set chat menu button:', menuErr.message);
+    });
+
     if (config.botMode === 'webhook') {
       const webhookUrl = `${config.webhookDomain}${config.webhookPath}`;
       console.log(`Setting Telegram webhook to: ${webhookUrl}`);

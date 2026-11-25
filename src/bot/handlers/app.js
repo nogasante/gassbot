@@ -17,7 +17,10 @@ Features include:
 
 Download directly from the Google Play Store below:`;
 
+  const webAppUrl = config.miniAppUrl || 'https://gassbot.vercel.app';
   const keyboard = new InlineKeyboard()
+    .webApp('🌐 Open Student Portal', webAppUrl)
+    .row()
     .url('📲 Download on Google Play', brand.links.playStore)
     .row()
     .text('🏠 Main Menu', 'menu_main');
