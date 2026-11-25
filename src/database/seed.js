@@ -222,7 +222,67 @@ async function seed() {
     );
   }
 
-  console.log(`Seeded ${coursesData.length} courses, ${beyondCategoriesData.length} categories, ${resourceTypesData.length} resource types, and settings successfully!`);
+  // Seed Drive / Telegram curriculum resources if manifest exists
+  const seededResources = await seedDriveResources();
+
+  console.log(`Seeded ${coursesData.length} courses, ${beyondCategoriesData.length} categories, ${resourceTypesData.length} resource types, ${seededResources} curriculum resources, and settings successfully!`);
+}
+
+async function seedDriveResources() {
+  const fs = require('fs');
+  const path = require('path');
+  const manifestPath = path.join(__dirname, 'drive_resources.json');
+  if (!fs.existsSync(manifestPath)) {
+    return 0;
+  }
+
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const coursesRes = await query('SELECT id, code, level, semester FROM courses');
+  const courses = coursesRes.rows;
+
+  const findCourseId = async (item) => {
+    let match = courses.find(
+      (c) => c.code.toUpperCase() === item.courseCode.toUpperCase() && c.level === item.level && c.semester === item.semester
+    );
+    if (!match) {
+      match = courses.find((c) => c.code.toUpperCase() === item.courseCode.toUpperCase());
+    }
+    if (!match) {
+      const inserted = await query(
+        `INSERT INTO courses (code, title, level, semester, description, is_active)
+         VALUES ($1, $2, $3, $4, $5, TRUE)
+         RETURNING id, code, level, semester`,
+        [item.courseCode, item.rawCourseFolder || item.courseCode, item.level, item.semester, `${item.courseCode} - ${item.rawCourseFolder || item.courseCode}`]
+      );
+      match = inserted.rows[0];
+      courses.push(match);
+    }
+    return match.id;
+  };
+
+  let count = 0;
+  for (const item of manifest) {
+    const courseId = await findCourseId(item);
+    await query(
+      `INSERT INTO resources (
+         title, description, resource_type, category, course_id,
+         file_url, telegram_file_id, file_format, tags, is_approved
+       )
+       VALUES ($1, $2, $3, 'curriculum', $4, $5, $6, $7, $8, TRUE);`,
+      [
+        item.title,
+        `${item.courseCode} ${item.resourceType === 'past_question' ? 'Past Question' : 'Lecture Slide'}`,
+        item.resourceType,
+        courseId,
+        item.fileUrl,
+        item.telegramFileId || null,
+        item.fileFormat || 'pdf',
+        [item.courseCode.toLowerCase(), item.resourceType, `level_${item.level}`]
+      ]
+    );
+    count++;
+  }
+  return count;
 }
 
 if (require.main === module) {
