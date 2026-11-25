@@ -243,6 +243,14 @@ function createBot(token = config.botToken) {
     await handleResourceList(ctx, courseId, resourceType);
   });
 
+  bot.callbackQuery(/^res_page_(\d+)_(.+)_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery();
+    const courseId = parseInt(ctx.match[1], 10);
+    const resourceType = ctx.match[2] === 'all' ? null : ctx.match[2];
+    const page = parseInt(ctx.match[3], 10);
+    await handleResourceList(ctx, courseId, resourceType, page);
+  });
+
   bot.callbackQuery(/^req_course_(\d+)$/, async (ctx) => {
     const courseId = parseInt(ctx.match[1], 10);
     await handleQuickCourseRequest(ctx, courseId);

@@ -2,7 +2,10 @@ const { getLevelsKeyboard, getSemestersKeyboard, getCoursesKeyboard, getCourseAc
 const { getCoursesByLevelAndSemester, getCourseById, getTopicsByCourseId, getDistinctLevels } = require('../../services/courseService');
 const { getResourcesByCourse } = require('../../services/resourceService');
 const { getAllResourceTypes } = require('../../services/resourceTypeService');
+const { escapeMarkdown, appendResourceButtons } = require('../utils/format');
 const { InlineKeyboard } = require('grammy');
+
+const RESOURCES_PAGE_SIZE = 10;
 
 async function handleAcademicMenu(ctx) {
   const text = 
@@ -91,7 +94,7 @@ Select an action below:`;
   });
 }
 
-async function handleResourceList(ctx, courseId, resourceType = null) {
+async function handleResourceList(ctx, courseId, resourceType = null, page = 1) {
   const course = await getCourseById(courseId);
   if (!course) {
     await ctx.reply('⚠️ Course not found.');
@@ -102,9 +105,9 @@ async function handleResourceList(ctx, courseId, resourceType = null) {
 
   if (resources.length === 0) {
     const text = 
-`📂 *Resources for ${course.code}*
+`📂 *Resources for ${escapeMarkdown(course.code)}*
 ━━━━━━━━━━━━━━━━━━
-No ${resourceType ? resourceType.replace('_', ' ') : 'course'} resources are currently uploaded for this course.
+No ${resourceType ? escapeMarkdown(resourceType.replace('_', ' ')) : 'course'} resources are currently uploaded for this course.
 
 💡 _Need this material? Use the "Request Resource" button to notify the Academic Committee!_`;
 
@@ -121,28 +124,32 @@ No ${resourceType ? resourceType.replace('_', ' ') : 'course'} resources are cur
     return;
   }
 
-  let text = 
-`📂 *Resources for ${course.code}: ${course.title}*
-━━━━━━━━━━━━━━━━━━\n`;
+  const totalPages = Math.max(1, Math.ceil(resources.length / RESOURCES_PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const startIdx = (currentPage - 1) * RESOURCES_PAGE_SIZE;
+  const pageItems = resources.slice(startIdx, startIdx + RESOURCES_PAGE_SIZE);
+
+  const typeFilterLabel = resourceType ? ` (${escapeMarkdown(resourceType.replace('_', ' ').toUpperCase())})` : '';
+  const pageLabel = totalPages > 1 ? ` • Page ${currentPage}/${totalPages}` : '';
+  const text =
+`📂 *${escapeMarkdown(course.code)}: ${escapeMarkdown(course.title)}*${typeFilterLabel}
+━━━━━━━━━━━━━━━━━━
+Found *${resources.length}* material${resources.length === 1 ? '' : 's'}${pageLabel}. Tap any file below to download:`;
 
   const keyboard = new InlineKeyboard();
+  appendResourceButtons(keyboard, pageItems);
 
-  resources.forEach((r, idx) => {
-    const typeLabel = r.resource_type.toUpperCase().replace('_', ' ');
-    text += `\n*${idx + 1}. ${r.title}*\n`;
-    text += `   🏷️ _Type:_ ${typeLabel} | 💾 _Format:_ ${r.file_format.toUpperCase()}\n`;
-    text += `   ${r.telegram_file_id ? '📥 _Downloads:_' : '👁️ _Accesses:_'} ${r.download_count}\n`;
-    if (r.telegram_file_id) {
-      keyboard.text(`📥 Send File #${idx + 1}`, `res_send_${r.id}`);
-      if ((idx + 1) % 2 === 0) keyboard.row();
-    } else if (r.file_url && r.file_url.startsWith('http')) {
-      text += `   🔗 [Link](${r.file_url})\n`;
-      keyboard.url(`🔗 Open #${idx + 1}`, r.file_url);
-      if ((idx + 1) % 2 === 0) keyboard.row();
+  if (totalPages > 1) {
+    const typeKey = resourceType || 'all';
+    if (currentPage > 1) {
+      keyboard.text('⬅️ Prev', `res_page_${courseId}_${typeKey}_${currentPage - 1}`);
     }
-  });
+    if (currentPage < totalPages) {
+      keyboard.text('Next ➡️', `res_page_${courseId}_${typeKey}_${currentPage + 1}`);
+    }
+    keyboard.row();
+  }
 
-  keyboard.row();
   keyboard
     .text('🔙 Back to Course', `acad_crs_${courseId}`)
     .text('🏠 Main Menu', 'menu_main');
@@ -166,7 +173,8 @@ async function handleSendResourceFile(ctx, resourceId) {
 
   const { getBrandConfig } = require('../../services/settingsService');
   const brand = await getBrandConfig();
-  const caption = `📄 *${resource.title}*\n${resource.course_code ? `Course: ${resource.course_code}\n` : ''}Slogan: _"${brand.slogan}"_`;
+  const safeTitle = escapeMarkdown(resource.title);
+  const caption = `📄 *${safeTitle}*\n${resource.course_code ? `Course: ${escapeMarkdown(resource.course_code)}\n` : ''}Slogan: _"${escapeMarkdown(brand.slogan)}"_`;
 
   if (resource.telegram_file_id) {
     try {

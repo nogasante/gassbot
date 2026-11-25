@@ -1,6 +1,6 @@
 const { searchResources, getResourcesByCourse } = require('../../services/resourceService');
 const { getCourseByCode } = require('../../services/courseService');
-const { escapeMarkdown } = require('../utils/format');
+const { escapeMarkdown, appendResourceButtons } = require('../utils/format');
 const { InlineKeyboard } = require('grammy');
 
 async function handleSearchCommand(ctx) {
@@ -91,30 +91,20 @@ async function executeSearch(ctx, queryTerm) {
       return;
     }
 
-    // Has resources: show them
-    let text = 
-`📂 *Resources for ${matchedCourse.code}: ${matchedCourse.title}*
-━━━━━━━━━━━━━━━━━━\n`;
+    // Has resources: show each file as its own labeled button
+    const text =
+`📂 *${escapeMarkdown(matchedCourse.code)}: ${escapeMarkdown(matchedCourse.title)}*
+━━━━━━━━━━━━━━━━━━
+Found *${resources.length}* material${resources.length === 1 ? '' : 's'}. Tap any file below to download:`;
 
     const keyboard = new InlineKeyboard();
+    appendResourceButtons(keyboard, resources.slice(0, 15));
 
-    resources.forEach((r, idx) => {
-      const typeLabel = (r.resource_type || 'material').toUpperCase().replace('_', ' ');
-      text += `\n*${idx + 1}. ${escapeMarkdown(r.title)}*\n`;
-      text += `   🏷️ ${typeLabel} | 💾 ${(r.file_format || 'pdf').toUpperCase()}\n`;
-      text += `   ${r.telegram_file_id ? '📥 Downloads:' : '👁️ Accesses:'} ${r.download_count}\n`;
+    if (resources.length > 15) {
+      keyboard.text(`📚 View All ${resources.length} Files`, `res_list_${matchedCourse.id}`).row();
+    }
 
-      if (r.telegram_file_id) {
-        keyboard.text(`📥 Send File #${idx + 1}`, `res_send_${r.id}`);
-        if ((idx + 1) % 2 === 0) keyboard.row();
-      } else if (r.file_url && r.file_url.startsWith('http')) {
-        text += `   🔗 [Link](${r.file_url})\n`;
-        keyboard.url(`🔗 Open #${idx + 1}`, r.file_url);
-        if ((idx + 1) % 2 === 0) keyboard.row();
-      }
-    });
-
-    keyboard.row()
+    keyboard
       .text('🔙 Back to Courses', 'menu_academic')
       .text('🏠 Main Menu', 'menu_main');
 
@@ -149,30 +139,15 @@ async function executeSearch(ctx, queryTerm) {
     return;
   }
 
-  let text = 
+  const text =
 `🔍 *Search Results for:* "${escapedQuery}"
-━━━━━━━━━━━━━━━━━━\n`;
+━━━━━━━━━━━━━━━━━━
+Found *${results.length}* material${results.length === 1 ? '' : 's'}. Tap any file below to download:`;
 
   const keyboard = new InlineKeyboard();
+  appendResourceButtons(keyboard, results, { includeCourseCode: true });
 
-  results.forEach((r, idx) => {
-    const coursePrefix = r.course_code ? `[${escapeMarkdown(r.course_code)}] ` : '';
-    const safeTitle = escapeMarkdown(r.title);
-    const safeType = escapeMarkdown((r.resource_type || 'material').toUpperCase().replace('_', ' '));
-    text += `\n*${idx + 1}. ${coursePrefix}${safeTitle}*\n`;
-    text += `   🏷️ ${safeType} | ${r.telegram_file_id ? '📥 Downloads:' : '👁️ Accesses:'} ${r.download_count}\n`;
-
-    if (r.telegram_file_id) {
-      keyboard.text(`📥 Send File #${idx + 1}`, `res_send_${r.id}`);
-      if ((idx + 1) % 2 === 0) keyboard.row();
-    } else if (r.file_url && r.file_url.startsWith('http')) {
-      text += `   🔗 [Open Material](${r.file_url})\n`;
-      keyboard.url(`🔗 Open #${idx + 1}`, r.file_url);
-      if ((idx + 1) % 2 === 0) keyboard.row();
-    }
-  });
-
-  keyboard.row().text('🏠 Main Menu', 'menu_main');
+  keyboard.text('🏠 Main Menu', 'menu_main');
 
   await ctx.reply(text, {
     parse_mode: 'Markdown',

@@ -46,7 +46,7 @@ async function searchResources(searchTerm, limit = 20) {
   const formattedSearch = `%${searchTerm.trim()}%`;
   const res = await query(
     `SELECT r.id, r.title, r.description, r.resource_type, r.category, r.beyond_category,
-            r.file_url, r.file_format, r.download_count,
+            r.file_url, r.telegram_file_id, r.file_format, r.download_count,
             c.code as course_code, c.title as course_title, c.level as course_level
      FROM resources r
      LEFT JOIN courses c ON r.course_id = c.id
